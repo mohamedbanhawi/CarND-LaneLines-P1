@@ -64,12 +64,17 @@ cost = tf.reduce_mean(\
 optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)\
     .minimize(cost)
 
+# Calculate accuracy
+correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # Initializing the variables
 init = tf.global_variables_initializer()
 count = 0
 # loss
 loss = np.array([])
+acc  = np.array([])
+count_list = np.array([])
 # Launch the graph
 with tf.Session() as sess:
     sess.run(init)
@@ -81,10 +86,18 @@ with tf.Session() as sess:
             count += 1
             batch_x, batch_y = mnist.train.next_batch(batch_size)
             # Run optimization op (backprop) and cost op (to get loss value)
-            _, cost_f = sess.run([optimizer, cost], feed_dict={x: batch_x, y: batch_y})
-            # Print loss
-            print('Loop: {} - Loss: {}'.format(count, cost_f))
+            _, cost_f, valid_accuracy = sess.run([optimizer, cost, accuracy], feed_dict={x: batch_x, y: batch_y})
+            if epoch % 50 == 0:
+                # Print loss
+                print('Loop: {} - Loss: {} - Validation Accuracy: {}'.format(count, cost_f, valid_accuracy))
             # store for plotting
             loss = np.append(loss, cost_f)
-plt.plot(loss)
+            acc = np.append(acc, valid_accuracy)
+            count_list = np.append(count_list, count)
+plt.subplot(1,2,1)
+plt.plot(count_list, loss, 'b')
+plt.ylabel('Cost')
+plt.subplot(1,2,2)
+plt.plot(count_list, acc , 'r')
+plt.ylabel('Validation Accuracy')
 plt.show()
