@@ -52,6 +52,13 @@ layer_1 = tf.add(tf.matmul(x_flat, weights['hidden_layer']),\
     biases['hidden_layer'])
 # Hidden layer with RELU activation
 layer_1 = tf.nn.relu(layer_1)
+
+# probability to keep units
+keep_prob = tf.placeholder(tf.float32) 
+
+# dropout neurons radnomly
+layer_1 = tf.nn.dropout(layer_1, keep_prob)
+
 # Output layer with linear activation
 logits = tf.add(tf.matmul(layer_1, weights['out']), biases['out'])
 
@@ -86,7 +93,9 @@ with tf.Session() as sess:
             count += 1
             batch_x, batch_y = mnist.train.next_batch(batch_size)
             # Run optimization op (backprop) and cost op (to get loss value)
-            _, cost_f, valid_accuracy = sess.run([optimizer, cost, accuracy], feed_dict={x: batch_x, y: batch_y})
+            _, cost_f, valid_accuracy = sess.run([optimizer, cost, accuracy], feed_dict={x: batch_x, 
+                                                                                         y: batch_y, 
+                                                                                         keep_prob=0.5})
             if epoch % 50 == 0:
                 # Print loss
                 print('Loop: {} - Loss: {} - Validation Accuracy: {}'.format(count, cost_f, valid_accuracy))
@@ -94,6 +103,7 @@ with tf.Session() as sess:
             loss = np.append(loss, cost_f)
             acc = np.append(acc, valid_accuracy)
             count_list = np.append(count_list, count)
+
 plt.subplot(1,2,1)
 plt.plot(count_list, loss, 'b')
 plt.ylabel('Cost')
