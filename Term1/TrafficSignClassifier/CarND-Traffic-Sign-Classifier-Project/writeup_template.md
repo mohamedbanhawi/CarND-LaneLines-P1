@@ -97,25 +97,37 @@ Zero centring appears to be a standard process. The data was converted to graysc
 
 #### 2.The model architecture 
 
-My final model consisted of the following layers:
+My final model consisted of the following layers was rather similar to the LeNet5 [2] architecture
+I added dropout layers to avoid relying on a certain class for training since the data was not uniform across all classes 
 
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x3 RGB image   							| 
-| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
-| RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 16x16x64 				|
-| Convolution 3x3	    | etc.      									|
-| Fully connected		| etc.        									|
-| Softmax				| etc.        									|
-|						|												|
-|						|												|
- 
-
+| 1. Convolution 3x3     	| 1x1 stride, valid padding, outputs 30x30x16 	|
+| RELU					|		To introduce nonlinearlity										|
+| 2. Convolution 3x3	    | 1x1 stride, valid padding, outputs 28x28x32. |
+| RELU					|		To introduce nonlinearlity										|
+| 3. Max pooling	      	| 2x2 stride, 2x2 Kernel  outputs 16x16x64 				|
+| Drop out | Keep probability 0.6 |
+| 4. Convolution 3x3	    | 1x1 stride, valid padding, outputs 12x12x64. |
+| RELU					|		To introduce nonlinearlity										|
+| 5. Convolution 3x3	    | 1x1 stride, valid padding, outputs 10x10x64. |
+| RELU					|		To introduce nonlinearlity										|
+| 6. Max pooling	      	| 2x2 stride, 2x2 Kernel  outputs 5x5x64. 				|
+| 7. Convolution 3x3	    | 1x1 stride, valid padding, outputs 3x3x128. |
+| RELU					|		To introduce nonlinearlity										|
+| Drop out | Keep probability 0.6 |
+| 9. Fully connected		| Input = 1152, Output 1024        									|
+| 10. Fully connected		| Input = 1024, Output 43 Classes        									|
 
 #### 3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
 
-To train the model, I used an ....
+To train the model, I used varied the learing rate, batch size and epochs.
+
+Batch size seemed to affect the speed of the training process.
+However, it seemed like the model converged around 95%.
+
+Epochs were limited to 15 to avoid over training.
 
 #### 4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
@@ -123,18 +135,18 @@ My final model results were:
 * validation set accuracy of 95.7%
 * test set accuracy of 93.4 %
 
-If an iterative approach was chosen:
-* What was the first architecture that was tried and why was it chosen?
-* What were some problems with the initial architecture?
-* How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to overfitting or underfitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
-* Which parameters were tuned? How were they adjusted and why?
-* What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
+I added drop out to avoid relying on a particular datapoint.
 
 If a well known architecture was chosen:
 * What architecture was chosen?
+I modified the LeNet5 [2] to match the approach in the paper [1].
+
 * Why did you believe it would be relevant to the traffic sign application?
-* How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?
- 
+I estimated that at least 3 Convolutional layers would be required to classify the frame of the sign. Additional three would be required to classify the inner shape of the sign.
+
+I added more fully connected layers as I suspected this would be needed to classify all the different classes.
+
+Finally, ReLu were selected as the classification at hand is highly nonlinear.
 
 ### Test a Model on New Images
 
