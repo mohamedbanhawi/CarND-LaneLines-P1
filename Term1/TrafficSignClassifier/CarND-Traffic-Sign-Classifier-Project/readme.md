@@ -1,6 +1,4 @@
-# **Traffic Sign Recognition** 
-
-## Writeup
+# **Project: Traffic Sign Recognition** 
 
 **Build a Traffic Sign Recognition Project**
 
