@@ -191,7 +191,7 @@ with tf.Session() as sess:
 
 The output is visualised below, it seems that all probabilities approach one, which could indicate a sign of overfitting of the training data.
 
-![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/online_images_hist.png)  
+![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/probabilities.png)  
 
 
 ### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
