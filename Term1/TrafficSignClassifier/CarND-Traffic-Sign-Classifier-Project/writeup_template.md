@@ -189,11 +189,14 @@ with tf.Session() as sess:
     top_signs = sess.run(tf.nn.top_k(y_predict, k =5))
 ```
 
+The output is visualised below, it seems that all probabilities approach one, which could indicate a sign of overfitting of the training data.
 
-For the second image ... 
+![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/online_images_hist.png)  
+
 
 ### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
 #### 1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
+
 
 #### References
 [1] Sermanet, Pierre, and Yann LeCun. "Traffic sign recognition with multi-scale convolutional networks." Neural Networks (IJCNN), The 2011 International Joint Conference on. IEEE, 2011.
