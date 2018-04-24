@@ -127,11 +127,17 @@ However, it seemed like the model converged around 95%.
 
 Epochs were limited to 15 to avoid over training.
 
+
 #### 4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
-My final model results were:
+Initial model results were:
 * validation set accuracy of 95.7%
 * test set accuracy of 93.4 %
+
+Perhaps, the dropout keep probabilites values should be modified for evaluation to 1.0. Implementing this change, improved results to
+Initial model results were:
+* validation set accuracy of 98%
+* test set accuracy of 87 %
 
 I added drop out to avoid relying on a particular datapoint.
 
@@ -175,8 +181,6 @@ Here are the results of the prediction:
 | Roundabout Mandatory      		| ![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/classified4.png)  									| 
 
 The model accuracy is 100%.
-
-Perhaps, the dropout keep probabilites values should be modified for evaluation to 1.0 to keep utilise the entire network
 
 #### 3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
 
