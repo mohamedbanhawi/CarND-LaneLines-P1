@@ -29,7 +29,7 @@ I used Numpy to calculate the statistics of the data set since the data was prov
 Each dataset contains equal number images and corresponding labels
 
 * The size of training set is: 34799 
-* The size of the validation set is: 
+* The size of the validation set is: 4410
 * The size of test set is: 34799
 * The shape of a traffic sign image is: (32, 32, 3) such that each image is 32x32 pixels and 3 channels (RGB)
 * The number of unique classes/labels in the data set is 43
@@ -47,7 +47,7 @@ I used a histogram to visualise the provided datasets, it is clear that the data
 **Testing**
 ![alt text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/init_tain.png)
 
-I found it useful to plot the different class to identify any potential differences that would be helpful in desining the network.
+I found it useful to plot the different class to identify any potential differences that would be helpful in designing the network.
 
 ![alt text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/all_classes.png)
 
@@ -134,10 +134,10 @@ Initial model results were:
 * validation set accuracy of 95.7%
 * test set accuracy of 93.4 %
 
-Perhaps, the dropout keep probabilites values should be modified for evaluation to 1.0. Implementing this change, improved results to
+The dropout keep probabilites values should be modified for evaluation to 1.0. Implementing this change, improved results to
 Initial model results were:
 * validation set accuracy of 98%
-* test set accuracy of 87 %
+* test set accuracy of 97 %
 
 I added drop out to avoid relying on a particular datapoint.
 
@@ -207,7 +207,7 @@ The output is visualised below, it seems that all probabilities approach one, wh
 #### References
 [1] Sermanet, Pierre, and Yann LeCun. "Traffic sign recognition with multi-scale convolutional networks." Neural Networks (IJCNN), The 2011 International Joint Conference on. IEEE, 2011.
 
-[2] LeCun, Yann. "LeNet-5, convolutional neural networks." URL: http://yann. lecun. com/exdb/lenet (2015): 20.
+[2] LeCun, Yann. "LeNet-5, convolutional neural networks." URL: http://yann.lecun.com/exdb/lenet (2015): 20.
 
 [3] Kingma, D. P., & Ba, J. L. (2015). Adam: a Method for Stochastic Optimization. International Conference on Learning Representations, 1–13
 
