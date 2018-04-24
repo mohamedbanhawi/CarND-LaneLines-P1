@@ -174,7 +174,9 @@ Here are the results of the prediction:
 | Speed Limit 80 Km/h     		| ![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/classified3.png)  									| 
 | Roundabout Mandatory      		| ![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/classified4.png)  									| 
 
-The model accuracy is 100%
+The model accuracy is 100%.
+
+Perhaps, the dropout keep probabilites values should be modified for evaluation to 1.0 to keep utilise the entire network
 
 #### 3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
 
