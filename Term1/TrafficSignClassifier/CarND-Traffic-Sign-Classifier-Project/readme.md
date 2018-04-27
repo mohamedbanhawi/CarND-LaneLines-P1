@@ -1,6 +1,4 @@
-# **Traffic Sign Recognition** 
-
-## Writeup
+# **Project: Traffic Sign Recognition** 
 
 **Build a Traffic Sign Recognition Project**
 
@@ -31,7 +29,7 @@ I used Numpy to calculate the statistics of the data set since the data was prov
 Each dataset contains equal number images and corresponding labels
 
 * The size of training set is: 34799 
-* The size of the validation set is: 
+* The size of the validation set is: 4410
 * The size of test set is: 34799
 * The shape of a traffic sign image is: (32, 32, 3) such that each image is 32x32 pixels and 3 channels (RGB)
 * The number of unique classes/labels in the data set is 43
@@ -49,7 +47,7 @@ I used a histogram to visualise the provided datasets, it is clear that the data
 **Testing**
 ![alt text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/init_tain.png)
 
-I found it useful to plot the different class to identify any potential differences that would be helpful in desining the network.
+I found it useful to plot the different class to identify any potential differences that would be helpful in designing the network.
 
 ![alt text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/all_classes.png)
 
@@ -129,11 +127,17 @@ However, it seemed like the model converged around 95%.
 
 Epochs were limited to 15 to avoid over training.
 
+
 #### 4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
-My final model results were:
+Initial model results were:
 * validation set accuracy of 95.7%
 * test set accuracy of 93.4 %
+
+The dropout keep probabilites values should be modified for evaluation to 1.0. Implementing this change, improved results to
+Initial model results were:
+* validation set accuracy of 98%
+* test set accuracy of 97 %
 
 I added drop out to avoid relying on a particular datapoint.
 
@@ -144,11 +148,13 @@ I modified the LeNet5 [2] to match the approach in the paper [1].
 * Why did you believe it would be relevant to the traffic sign application?
 I estimated that at least 3 Convolutional layers would be required to classify the frame of the sign. Additional three would be required to classify the inner shape of the sign.
 
+I used Adam [3] Optimiser which appears to change apply an adaptive exponential decay for learning rate. It would be interesting to compare it's performance with other optimisation algorithms [4]
+
 I added more fully connected layers as I suspected this would be needed to classify all the different classes.
 
 Finally, ReLu were selected as the classification at hand is highly nonlinear.
 
-Several additions were not added due to time limtations, the authors in [1] suggested using YUB colorspace. Additionally, other architectures such as GoogLeNet [3] 
+Several additions were not added due to time limtations, the authors in [1] suggested using YUB colorspace. Additionally, other architectures such as GoogLeNet [5] 
 
 ### Test a Model on New Images
 
@@ -174,7 +180,7 @@ Here are the results of the prediction:
 | Speed Limit 80 Km/h     		| ![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/classified3.png)  									| 
 | Roundabout Mandatory      		| ![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/classified4.png)  									| 
 
-The model accuracy is 100%
+The model accuracy is 100%.
 
 #### 3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
 
@@ -189,13 +195,22 @@ with tf.Session() as sess:
     top_signs = sess.run(tf.nn.top_k(y_predict, k =5))
 ```
 
+The output is visualised below, it seems that all probabilities approach one, which could indicate a sign of overfitting of the training data.
 
-For the second image ... 
+![alt_text](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/TrafficSignClassifier/CarND-Traffic-Sign-Classifier-Project/write_up_images/probabilities.png)  
+
 
 ### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
 #### 1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
 
+
 #### References
 [1] Sermanet, Pierre, and Yann LeCun. "Traffic sign recognition with multi-scale convolutional networks." Neural Networks (IJCNN), The 2011 International Joint Conference on. IEEE, 2011.
 
-[2] LeCun, Yann. "LeNet-5, convolutional neural networks." URL: http://yann. lecun. com/exdb/lenet (2015): 20.
+[2] LeCun, Yann. "LeNet-5, convolutional neural networks." URL: http://yann.lecun.com/exdb/lenet (2015): 20.
+
+[3] Kingma, D. P., & Ba, J. L. (2015). Adam: a Method for Stochastic Optimization. International Conference on Learning Representations, 1–13
+
+[4] http://ruder.io/optimizing-gradient-descent/index.html#adamax
+
+[5] http://deeplearning.net/tag/googlenet/
