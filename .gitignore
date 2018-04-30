@@ -1,2 +1,5 @@
 
 *.gz
+*.p
+*.pyc
+Term1/AlexNet/CarND-Alexnet-Feature-Extraction/bvlc-alexnet.npy
