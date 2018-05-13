@@ -16,7 +16,8 @@ for dataset in datasets:
         for line in reader:
             image_path = line[0]
             image_path = image_path.split('/')[-1]
-            image_path = dataset + image_path
+            image_path = dataset + 'IMG/' +image_path
+            print (image_path)
             image = cv2.imread(image_path)
             images.append(image)
             steering_measurement = float(line[3])
@@ -30,16 +31,20 @@ for dataset in datasets:
 X_train = np.array(images)
 y_train = np.array(steering_measurements)
 
+shape = X_train[-1].shape
+
 from keras.models import Sequential
-from keras.layers import Flatten, Dense
+from keras.layers import Flatten, Dense, Lambda
 
 model = Sequential()
-model.add(Flatten(input_shape=(160,320,3)))
+# normalise
+model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=shape))
+model.add(Flatten())
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer = 'adam')
 
-model.fit(X_train, y_train, validation_split = 0.2, shuffle = true)
+model.fit(X_train, y_train, validation_split = 0.2, shuffle = True)
 
 model.save('cloning_model.h5')
 
