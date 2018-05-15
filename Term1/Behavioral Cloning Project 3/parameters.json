@@ -1,0 +1,28 @@
+{
+ "data_sets": ["data/counterclockwise/"],
+ "log_name": "driving_log.csv",
+ "data_augmentation":
+                {
+                    "use_left_camera": false,
+                    "use_right_camera": false,
+                    "camera_correction": 0.2,
+                    "flip_images": true,
+                    "darken": false,
+                    "dark_gamme":0.35,
+                    "brighten": false,
+                    "bright_gamma":5,
+                    "blur":false,
+                    "rotate":true,
+                    "rotation_angle_deg": 5,
+                    "translate":true,
+                    "distance_px":5,
+                    "show_images": false
+                },
+                
+ "training": 
+                {
+                    "epochs": 10,
+                    "network": "nvidia",
+                    "visualise_performance": true
+                }
+}
