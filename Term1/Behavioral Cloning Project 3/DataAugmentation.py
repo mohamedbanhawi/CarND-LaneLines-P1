@@ -5,8 +5,11 @@ import random
 
 class DataAugmentation:
 
+    def __self__():
+        print ('New DataAugmentation Class')
+
     # augmentation helper functions
-    def blur_dataset(images,alpha):
+    def blur_dataset(self, images, alpha):
         dim = len(images.shape)
         if dim ==4:
             for i in range(images.shape[0]):
@@ -19,7 +22,7 @@ class DataAugmentation:
             images = dst
         return images
 
-    def adjust_gamma(images, gamma=1.0):
+    def adjust_gamma(self, images, gamma=1.0):
         dim = len(images.shape)
         
         invGamma = 1.0 / gamma
@@ -35,7 +38,7 @@ class DataAugmentation:
                 images[i] = im
         return images
 
-    def rotate_dataset(images, angle):
+    def rotate_dataset(self, images, angle):
         dim = len(images.shape)
         if dim ==4:
             for i in range(images.shape[0]):
@@ -52,7 +55,7 @@ class DataAugmentation:
             images = np.copy(dst)
         return images
 
-    def shift_dataset(images, vector):
+    def shift_dataset(self, images, vector):
         dim = len(images.shape)
         if dim == 4:
             for i in range(images.shape[0]):
@@ -69,7 +72,7 @@ class DataAugmentation:
             images = dst
         return images
 
-    def random_jitter(x):
+    def random_jitter(self, x):
         jitter_func = random.randint(1,4) 
         
         if jitter_func == 1:

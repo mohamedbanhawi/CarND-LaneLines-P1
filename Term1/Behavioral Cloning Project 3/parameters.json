@@ -2,21 +2,27 @@
  "data_sets": ["data/counterclockwise/"],
  "log_name": "driving_log.csv",
  "data_augmentation":
-                {
-                    "use_left_camera": false,
-                    "use_right_camera": false,
+                {   
+                    "flip":true,
+                    "use_left_camera": true,
+                    "use_right_camera": true,
                     "camera_correction": 0.2,
                     "flip_images": true,
-                    "darken": false,
+                    "darken": true,
                     "dark_gamme":0.35,
-                    "brighten": false,
+                    "brighten": true,
                     "bright_gamma":5,
-                    "blur":false,
+                    "blur":true,
+                    "blur_kernel":2,
                     "rotate":true,
                     "rotation_angle_deg": 5,
                     "translate":true,
                     "distance_px":5,
-                    "show_images": false
+                    "randomise": false,
+                    "randomise_factor":1,
+                    "show_images": false,
+                    "write_images": false
+
                 },
                 
  "training": 
