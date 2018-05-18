@@ -1,19 +1,12 @@
 # **Behavioral Cloning** 
-
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
 ---
 
 **Behavioral Cloning Project**
 
-The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
 * Build, a convolution neural network in Keras that predicts steering angles from images
 * Train and validate the model with a training and validation set
-* Test that the model successfully drives around track one without leaving the road
-* Summarize the results with a written report
+* Test that the model successfully drives around the track without leaving the road
 
 
 [//]: # (Image References)
@@ -27,46 +20,63 @@ The goals / steps of this project are the following:
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 
 ## Rubric Points
-### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
-
+### The project requirements are listed here [rubric points](https://review.udacity.com/#!/rubrics/432/view) 
 ---
 ### Files Submitted & Code Quality
 
 #### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
-My project includes the following files:
-* model.py containing the script to create and train the model
-* drive.py for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network 
-* writeup_report.md or writeup_report.pdf summarizing the results
+I have included the following
+* [model.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/model.py) containing the script to create and train the model
+* [drive.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/drive.py) for driving the car in autonomous mode
+* [nvidia_cloning_model.h5](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/model/nvidia_cloning_model.h5) containing a trained convolution neural network for track one
+* [nvidia_cloning_model_track2.h5](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/model/nvidia_cloning_model_track2.h5) containing a trained convolution neural network for track two
+* [parameters.json](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/parameters.json) containing training and data augmentation parameters
+* [DataAugmentation.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/DataAugmentation.py) implentation of data augmentation techniques for images
+* [writeup_report.md](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/writeup_template.md])summarizing the results
 
 #### 2. Submission includes functional code
-Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
+Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around:
+
+- Track one by executing 
 ```sh
-python drive.py model.h5
+python drive.py nvidia_cloning_model.h5
 ```
+-Track two using
 
+```sh
+python drive.py nvidia_cloning_model_track2.h5
+```
 #### 3. Submission code is usable and readable
+[model.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/model.py) contains two convolutional neural networks, [LeNet](http://yann.lecun.com/exdb/lenet/) and [DAVE-2](https://arxiv.org/pdf/1604.07316.pdf). It includes the entire training pipeline from loading the data, augmentation techniques, training (either network or transfer learning from track one to track two) and validating the network.
 
-The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+The image preprocessing and augmentation is implemented in [DataAugmentation.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/DataAugmentation.py)
+
+Training and data augmentation parameters are defined in [parameters.json](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/parameters.json)
+
+This faciliated the training process on the AWS cloud instance as several changes and parameters had to be tuned.
 
 ### Model Architecture and Training Strategy
 
 #### 1. An appropriate model architecture has been employed
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+[DAVE-2](https://arxiv.org/pdf/164.07316.pdf) was implemented ([model.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/model.py) lines 199-216)
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+The model includes 4 CNN layers with pooling layers in between, followed by four fully connected layers. The original model includes an additional normalisation layer which was implemented using a Keras lambda layer (code line 195). 
+
+The model includes RELU layers to introduce nonlinearity (code line 208) and a tanh activation function.
+
+I will not go into a discussion on LeNet has it has been implemented before, additionally it was'nt not used to generate the results used here.
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
-
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+The model was trained and validated (20% split) on different data sets to ensure that the model was not overfitting. The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track. The training and validation loss was monitored to avoid over training, by inspecting the parameter.json file it can be seen that the epochs were limited to 7 as the validation loss was stagnating.
 
 #### 3. Model parameter tuning
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
+The model used an adam optimizer, so the learning rate was not tuned manually (code line 231).
+
+Additionally, using a parameter (epochs, augmentation techinques, multiple datasets, networks...etc) file enabled rapid prototyping of the model on the AWS instance without having to inspect the entire code based which was a few hundred lines of code.
 
 #### 4. Appropriate training data
 
