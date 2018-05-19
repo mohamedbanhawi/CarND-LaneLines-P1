@@ -3,7 +3,12 @@ import csv
 import numpy as np
 import json
 import DataAugmentation
-import matplotlib.pyplot as plt
+import time
+import matplotlib
+matplotlib.use('Agg')
+import pylab as plt
+
+start_time = time.time()
 
 DA = DataAugmentation.DataAugmentation()
 
@@ -19,8 +24,13 @@ log_name = parameters['log_name']
 data_augmentation = parameters['data_augmentation']
 training_parameters = parameters['training']
 
+X_train = np.array([])
+y_train = np.array([])
+images = []
+steering_measurements = []
 # load files
 for dataset in datasets:
+    print ('Loading '+ dataset)
     with open(dataset+log_name) as csvfile:
         reader = csv.reader(csvfile)
         for line in reader:
@@ -31,12 +41,6 @@ for dataset in datasets:
             images.append(image)
             steering_measurement = float(line[3])
             steering_measurements.append(steering_measurement)
-            if data_augmentation['flip']:
-                # flip
-                image_flip = cv2.flip(image, 1)
-                images.append(image_flip)
-                steering_measurement_flip = -steering_measurement
-                steering_measurements.append(steering_measurement_flip)
 
             if data_augmentation['use_left_camera']:
                 # other cameras
@@ -100,7 +104,6 @@ for dataset in datasets:
                 image_rotate_pos = DA.rotate_dataset(image, angle)
                 images.append(image_rotate_pos)
                 steering_measurements.append(steering_measurement)
-
                 angle = -angle
                 image_rotate_neg= DA.rotate_dataset(image, angle)
                 images.append(image_rotate_neg)
@@ -111,6 +114,20 @@ for dataset in datasets:
                     image_rand = DA.random_jitter(image)
                     images.append(image_rand)
                     steering_measurements.append(steering_measurement)
+
+            elapsed_time = time.time() - start_time
+            if round(elapsed_time)%5 == 0:
+                print("Elapsed: "+time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
+                print("Processed: " + str(len(images)))  
+
+if data_augmentation['flip']: 
+    print ('Flipping all..'+str(len(images)))
+    for i in range(len(images)):                 
+        image_flip = cv2.flip(images[i], 1)
+        images.append(image_flip)
+        steering_measurement_flip = -steering_measurements[i]
+        steering_measurements.append(steering_measurement_flip)
+
 
 if data_augmentation['show_images']: 
     cv2.imshow('Original Image',image)
@@ -162,29 +179,30 @@ if data_augmentation['write_images']:
     if data_augmentation['randomise']:
         cv2.imwrite('Randomise.png', image_rand)
 
-
 X_train = np.array(images)
 y_train = np.array(steering_measurements)
 
 shape = X_train[-1].shape
 
-from keras.models import Sequential, Convolution2D, Model
-from keras.layers import Flatten, Dense, Lambda, Activation
+from keras.models import Sequential, Model, load_model
+from keras.layers import Flatten, Dense, Lambda, Activation, Cropping2D, Dropout
+from keras.layers.convolutional import Conv2D
+from keras.layers.pooling import MaxPooling2D
 
 model = Sequential()
 # crop
 # remove bonnet and features from outside the road
-model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=(3,160,320)))
+model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=shape))
 # normalise
-model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=shape))
+model.add(Lambda(lambda x: (x / 255.0) - 0.5))
 
 if training_parameters['network'] == 'nvidia':
     # implement the end to end driving network by nvidia
-    model.add(Convolution2D(24,5,5, activation='relu', subsample=(2,2)))
-    model.add(Convolution2D(36,5,5, activation='relu', subsample=(2,2)))
-    model.add(Convolution2D(48,5,5, activation='relu', subsample=(2,2)))
-    model.add(Convolution2D(64,3,3, activation='relu', subsample=(1,1)))
-    model.add(Convolution2D(64,3,3, activation='relu', subsample=(1,1)))
+    model.add(Conv2D(24,5,5, activation='relu', subsample=(2,2)))
+    model.add(Conv2D(36,5,5, activation='relu', subsample=(2,2)))
+    model.add(Conv2D(48,5,5, activation='relu', subsample=(2,2)))
+    model.add(Conv2D(64,3,3, activation='relu', subsample=(1,1)))
+    model.add(Conv2D(64,3,3, activation='relu', subsample=(1,1)))
     model.add(Flatten())
     model.add(Dense(1164))
     model.add(Activation('relu'))
@@ -197,10 +215,10 @@ if training_parameters['network'] == 'nvidia':
     model.add(Dense(1))
     model.add(Activation('tanh'))
 
-else if training_parameters['network'] == lenet:
-    model.add(Conv2D(32, kernel_size=(3, 3), input_shape=shape))
+elif training_parameters['network'] == 'lenet':
+    model.add(Conv2D(32,  3, 3, input_shape=shape))
     model.add(Activation('relu'))
-    model.add(Conv2D(64, (3, 3)))
+    model.add(Conv2D(64, 3, 3))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
@@ -212,19 +230,31 @@ else if training_parameters['network'] == lenet:
 
 model.compile(loss='mse', optimizer = 'adam')
 
-history_object = model.fit(X_train, y_train, nb_epochs=training_parameters['epochs'], validation_split = 0.2, shuffle = True)
+if training_parameters['load_model']:
+    model = load_model(training_parameters['model_name'])
+
+history_object = model.fit(X_train, y_train, validation_split = 0.2, nb_epoch=training_parameters['epochs'], shuffle = True)
 
 model.save(training_parameters['network']+'_cloning_model.h5')
 
 if training_parameters['visualise_performance']:
-    ### plot the training and validation loss for each epoch
+    # summarize history for accuracy
+    # plt.plot(history_object.history['acc'])
+    # plt.plot(history_object.history['val_acc'])
+    # plt.title('model accuracy')
+    # plt.ylabel('accuracy')
+    # plt.xlabel('epoch')
+    # plt.legend(['train', 'test'], loc='upper left')
+    # plt.show()
+    # plt.savefig(training_parameters['network']+'_accuracy.png')
+    # summarize history for loss
     plt.plot(history_object.history['loss'])
     plt.plot(history_object.history['val_loss'])
-    plt.title('model mean squared error loss')
-    plt.ylabel('mean squared error loss')
+    plt.title('model loss')
+    plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['training set', 'validation set'], loc='upper right')
-    plt.show()
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.savefig(training_parameters['network']+'_loss.png')
 
 
 

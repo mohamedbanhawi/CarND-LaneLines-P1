@@ -1,23 +1,23 @@
 {
- "data_sets": ["data/counterclockwise/"],
+ "data_sets": ["data/counterclockwise/", "data/clockwise/", "data/recovery/"],
  "log_name": "driving_log.csv",
  "data_augmentation":
                 {   
                     "flip":true,
                     "use_left_camera": true,
                     "use_right_camera": true,
-                    "camera_correction": 0.2,
+                    "camera_correction": 0.3,
                     "flip_images": true,
-                    "darken": true,
+                    "darken": false,
                     "dark_gamme":0.35,
-                    "brighten": true,
+                    "brighten": false,
                     "bright_gamma":5,
-                    "blur":true,
-                    "blur_kernel":2,
-                    "rotate":true,
+                    "blur":false,
+                    "blur_kernel":5,
+                    "rotate":false,
                     "rotation_angle_deg": 5,
-                    "translate":true,
-                    "distance_px":5,
+                    "translate":false,
+                    "distance_px":10,
                     "randomise": false,
                     "randomise_factor":1,
                     "show_images": false,
@@ -27,8 +27,10 @@
                 
  "training": 
                 {
-                    "epochs": 10,
+                    "epochs": 7,
                     "network": "nvidia",
-                    "visualise_performance": true
+                    "visualise_performance": true,
+                    "load_model": true,
+                    "model_name": "nvidia_cloning_model.h5"
                 }
 }
