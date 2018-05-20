@@ -214,3 +214,6 @@ model = load_model(training_parameters['model_name'])
 The I used three epochs to fine tune the model for track two. The vehicle was able to drive track two autonomously whilst staying in the centre of the road.
 
 [![Track one](https://img.youtube.com/vi/udGkdFnNrwI/mqdefault.jpg)](https://www.youtube.com/watch?v=udGkdFnNrwI "Track one")
+
+[![Track two](https://img.youtube.com/vi/YQdG4cEkX_I/hqdefault.jpg)](https://www.youtube.com/watch?v=YQdG4cEkX_I "Track two")
+
