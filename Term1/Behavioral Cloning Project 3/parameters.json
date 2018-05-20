@@ -30,7 +30,7 @@
                     "epochs": 7,
                     "network": "nvidia",
                     "visualise_performance": true,
-                    "load_model": true,
+                    "load_model": false,
                     "model_name": "nvidia_cloning_model.h5"
                 }
 }
