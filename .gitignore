@@ -4,3 +4,10 @@
 *.pyc
 Term1/AlexNet/CarND-Alexnet-Feature-Extraction/bvlc-alexnet.npy
 Term1/Behavioral Cloning Project 3/data
+Term1/Behavioral Cloning Project 3/videos/nvidia.mov
+Term1/Behavioral Cloning Project 3/videos/nvidia_dave_mouse.mov
+Term1/Behavioral Cloning Project 3/videos/nvidia_dave_mouse.mp4
+Term1/Behavioral Cloning Project 3/videos/nvidia_track2.mov
+Term1/Behavioral Cloning Project 3/videos/nvidia_track2.mp4
+Term1/Behavioral Cloning Project 3/model/nvidia_cloning_model_track2.h5
+Term1/Behavioral Cloning Project 3/model/nvidia_cloning_model.h5
