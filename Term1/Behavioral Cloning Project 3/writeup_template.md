@@ -8,16 +8,11 @@
 * Train and validate the model with a training and validation set
 * Test that the model successfully drives around the track without leaving the road
 
-
 [//]: # (Image References)
 
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+[dave2]: ./images/Screen%20Shot%202018-05-15%20at%2022.18.44.png
+[train_loss]: ./images/nvidia_loss.png
+[original]: ./images/Original%20Image.png
 
 ## Rubric Points
 ### The project requirements are listed here [rubric points](https://review.udacity.com/#!/rubrics/432/view) 
@@ -42,7 +37,7 @@ Using the Udacity provided simulator and my drive.py file, the car can be driven
 ```sh
 python drive.py nvidia_cloning_model.h5
 ```
--Track two using
+- Track two using
 
 ```sh
 python drive.py nvidia_cloning_model_track2.h5
@@ -56,21 +51,31 @@ Training and data augmentation parameters are defined in [parameters.json](https
 
 This faciliated the training process on the AWS cloud instance as several changes and parameters had to be tuned.
 
+#### 4. Video of the vehicle driving around autonomously
+
+- [Track one](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/videos/run.mp4)
+
+- [Track two](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/videos/run2.mp4)
+
 ### Model Architecture and Training Strategy
 
 #### 1. An appropriate model architecture has been employed
 
 [DAVE-2](https://arxiv.org/pdf/164.07316.pdf) was implemented ([model.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Behavioral%20Cloning%20Project%203/model.py) lines 199-216)
 
-The model includes 4 CNN layers with pooling layers in between, followed by four fully connected layers. The original model includes an additional normalisation layer which was implemented using a Keras lambda layer (code line 195). 
+The model includes 4 CNN layers with pooling layers in between, followed by four fully connected layers. The original model includes an additional normalisation layer which was implemented using a Keras lambda layer (code line 195), as shown later on.
 
-The model includes RELU layers to introduce nonlinearity (code line 208) and a tanh activation function.
+The model includes RELU layers to introduce nonlinearity (code line 208) and a tanh activation function, which introduces nonlinearlity to the model.
 
 I will not go into a discussion on LeNet has it has been implemented before, additionally it was'nt not used to generate the results used here.
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model was trained and validated (20% split) on different data sets to ensure that the model was not overfitting. The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track. The training and validation loss was monitored to avoid over training, by inspecting the parameter.json file it can be seen that the epochs were limited to 7 as the validation loss was stagnating.
+The model was trained and validated (20% split) on different data sets to ensure that the model was not overfitting. The data was shuffled before splitting into training and validation, as it was collected chronologically by driving the vehicle in the simulator. The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track. The training and validation loss was monitored to avoid over training, by inspecting the parameter.json file it can be seen that the epochs were limited to 7 as the validation loss was stagnating.
+
+The training and validation losses are shown below for the seven epochs used for training:
+
+![alt_text][train_loss]
 
 #### 3. Model parameter tuning
 
@@ -80,60 +85,132 @@ Additionally, using a parameter (epochs, augmentation techinques, multiple datas
 
 #### 4. Appropriate training data
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
+For the first track, three datasets were created.
+1- Counter clockewise loop, which is the required task.
 
-For details about how I created the training data, see the next section. 
+It was clear that the drive was dominated by counter clock wise turns.
+
+2- Clock wise loop: to unify the training data distrubition.
+
+3- Recovery: Created for specialy cases such as driving straight on the bridge, recovery from extreme left and right cases, turning away from dirt roads, etc.
+
+4- Data augemtnation: certain data augmentation techinques were applied to all datasets, which will be discussed in more detail.
 
 ### Model Architecture and Training Strategy
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+It was clear that there was an existing body for research on this work and that it would be not be pratical to build and design a network from scratch. CNNs were the obvious choice for image processing applications. I implemented both LeNet and DAVE-2. The latter was used to solve this very problem for real world driving.
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+I did not use LeNet as the training time was a lot longer than DAVE-2 and DAVE-2 seemed to be more suited for the problem at hand.
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
+In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. 
 
-To combat the overfitting, I modified the model so that ...
+I initally had good results in terms of MSE using the counter clock wise dataset mentione earlier however, the vehicle was driving well only on clockwise turns. I followed by adding a clock wise dataset. The data augmentation techinques will be discussed later on. 
 
-Then I ... 
+I found the MSE was not a good indication of the driving performance, I could only validate the performance of the model by driving the vehicle. 
 
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+At the end of the process, the vehicle is able to drive autonomously around both track without leaving the road
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture model architecture was DAVE-2
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+```python
+model.add(Conv2D(24,5,5, activation='relu', subsample=(2,2)))
+model.add(Conv2D(36,5,5, activation='relu', subsample=(2,2)))
+model.add(Conv2D(48,5,5, activation='relu', subsample=(2,2)))
+model.add(Conv2D(64,3,3, activation='relu', subsample=(1,1)))
+model.add(Conv2D(64,3,3, activation='relu', subsample=(1,1)))
+model.add(Flatten())
+model.add(Dense(1164))
+model.add(Activation('relu'))
+model.add(Dense(100))
+model.add(Activation('relu'))
+model.add(Dense(50))
+model.add(Activation('relu'))
+model.add(Dense(10))
+model.add(Activation('relu'))
+model.add(Dense(1))
+model.add(Activation('tanh'))
+```
+Here is a visualization of the architecture from the original paper
 
-![alt text][image1]
+![alt text][dave2]
+
+#### 3. Final Data Augmentation, Training Datasets and Parameters
+
+The final parameters used were as follows:
+
+```json
+{
+ "data_sets": ["data/counterclockwise/", "data/clockwise/", "data/recovery/"],
+ "log_name": "driving_log.csv",
+ "data_augmentation":
+                {   
+                    "flip":true,
+                    "use_left_camera": true,
+                    "use_right_camera": true,
+                    "camera_correction": 0.3,
+                    "flip_images": true,
+                    "darken": false,
+                    "dark_gamme":0.35,
+                    "brighten": false,
+                    "bright_gamma":5,
+                    "blur":false,
+                    "blur_kernel":5,
+                    "rotate":false,
+                    "rotation_angle_deg": 5,
+                    "translate":false,
+                    "distance_px":10,
+                    "randomise": false,
+                    "randomise_factor":1,
+                    "show_images": false,
+                    "write_images": false
+
+                },
+                
+ "training": 
+                {
+                    "epochs": 7,
+                    "network": "nvidia",
+                    "visualise_performance": true,
+                    "load_model": false,
+                    "model_name": "nvidia_cloning_model.h5"
+                }
+}
+```
+
+Two parameter to note here, is that I did not apply rotation and translation to the images as recommended by the DAVE-2 creaters as that requried the a correction to the steering angle which was another hyper parameter to tune, without the correction factor the performance seems to degrade.
+
+Additionally, I did not convert the images to YUV space as recommended by the authors. I did not seem to gain any improvements.
 
 #### 3. Creation of the Training Set & Training Process
 
 To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
 
-![alt text][image2]
+![alt text][original]
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+I recorded a single clockwise loop for track one and a recovery lap.
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+For track two, I only captured a single lap which was not used in the inital training run.
 
-Then I repeated this process on track two in order to get more data points.
+To augment the data sat I attempted darkning, brighting and blurring the image but that did not improve the performance. My thought was this would train the model to identify that curvature of the road is the only factor that influences the steering angle.
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+The images were flipped and corresponding steering angles were negated.
 
-![alt text][image6]
-![alt text][image7]
+The data was grayscaled and normalised. 
 
-Etc ....
+I finally randomly shuffled the data set and put 20% of the data into a validation set. 
 
-After the collection process, I had X number of data points. I then preprocessed this data by ...
+#### 5. Transfer Learning to track two
 
+For track two, I implemented a fine tuning strategy as the trained model for track one would be suitable. I only used a single lap from track two to fine tun the model which I considered sufficient. 
 
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
+``` python
+model = load_model(training_parameters['model_name'])
+```
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+The I used three epochs to fine tune the model for track two. The vehicle was able to drive track two autonomously whilst staying in the centre of the road.
+
+[![Track one](https://img.youtube.com/vi/udGkdFnNrwI/mqdefault.jpg)](https://www.youtube.com/watch?v=udGkdFnNrwI "Track one")
