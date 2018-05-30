@@ -1,6 +1,7 @@
 # libraries 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import cv2
 import os
 import time
@@ -31,65 +32,87 @@ class lane_finding():
         
         # image perspective transform
         self.Minv = None
+        self.M    = None
         
-    def process_image(self, img):
-
-        # find corners in 
-        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    def process_image(self, image):
         
-        #Correcting the test image:
-        dst = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
+        ################## Lens Distortion Correction ##################
+        corrected_image = cv2.undistort(image, self.mtx, self.dist, None, self.mtx)
 
 
-        #Distortion correction
+        ################## Gradient Thresholds ##################
+        # Grayscale image
+        gray = cv2.cvtColor(corrected_image, cv2.COLOR_BGR2GRAY)
 
-        #Color/gradient threshold
+        # Gradients
+        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0) # Take the derivative in x
+        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1) # Take the derivative in y
+        # abs_sobelx = np.absolute(sobelx) # Absolute x derivative to accentuate lines away from horizontal
+        # scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
+
+        # Gradient direction
+        min_angle = 40*np.pi/180
+        max_angle = 75*np.pi/180
+        absgraddir = np.arctan2(np.absolute(sobely), np.absolute(sobelx))
+        graddir_binary =  np.zeros_like(absgraddir)
+        graddir_binary[(absgraddir >= min_angle) & (absgraddir <= max_angle)] = 1
+        # gradient magnitude
+        mag_thresh=(50, 180)
+        gradmag = np.sqrt(sobelx**2 + sobely**2)
+        # Rescale to 8 bit
+        scale_factor = np.max(gradmag)/255 
+        gradmag = (gradmag/scale_factor).astype(np.uint8) 
+        # Create a binary image of ones where threshold is met, zeros otherwise
+        gradmag_binary = np.zeros_like(gradmag)
+        gradmag_binary[(gradmag >= mag_thresh[0]) & (gradmag <= mag_thresh[1])] = 1
+
+        ################## Color threshold ##################
+        # R-channel
+        r_channel = corrected_image[:,:,2]
         # Convert to HLS color space and separate the S channel
-        # Note: img is the undistorted image
-        hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
+        hls = cv2.cvtColor(corrected_image, cv2.COLOR_RGB2HLS)
         s_channel = hls[:,:,2]
 
-        # Grayscale image
-        # NOTE: we already saw that standard grayscaling lost color information for the lane lines
-        # Explore gradients in other colors spaces / color channels to see what might work better
+        # Threshold R- color channel
+        r_thresh_min = 200
+        r_thresh_max = 255
+        r_binary = np.zeros_like(r_channel)
+        r_binary[(r_channel >= r_thresh_min) & (r_channel <= r_thresh_max)] = 1
 
-        # Sobel x
-        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0) # Take the derivative in x
-        abs_sobelx = np.absolute(sobelx) # Absolute x derivative to accentuate lines away from horizontal
-        scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
-
-        # Threshold x gradient
-        thresh_min = 20
-        thresh_max = 100
-        sxbinary = np.zeros_like(scaled_sobel)
-        sxbinary[(scaled_sobel >= thresh_min) & (scaled_sobel <= thresh_max)] = 1
-
-        # Threshold color channel
-        s_thresh_min = 170
+        # Threshold S- color channel
+        s_thresh_min = 125
         s_thresh_max = 255
         s_binary = np.zeros_like(s_channel)
         s_binary[(s_channel >= s_thresh_min) & (s_channel <= s_thresh_max)] = 1
 
-        # Stack each channel to view their individual contributions in green and blue respectively
-        # This returns a stack of the two binary images, whose components you can see as different colors
-        color_binary = np.dstack(( np.zeros_like(sxbinary), sxbinary, s_binary)) * 255
+        # Combine the binary thresholds
+        combined_binary = np.zeros_like(graddir_binary)
+        combined_binary[((graddir_binary == 1) & (gradmag_binary ==1)) | ((s_binary == 1) & (r_binary == 1))] = 1
 
-        # Combine the two binary thresholds
-        combined_binary = np.zeros_like(sxbinary)
-        combined_binary[(s_binary == 1) | (sxbinary == 1)] = 1
-
-        # Plotting thresholded images
-        f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
-        ax1.set_title('Stacked thresholds')
-        ax1.imshow(color_binary)
-
-        ax2.set_title('Combined S channel and gradient thresholds')
-        ax2.imshow(combined_binary, cmap='gray')
-
-        # Perspective transform
-
+        ################## Perspective Warp ##################
         # Warp an image using the perspective transform, M:
-        warped = cv2.warpPerspective(img, self.Minv, self.img_size, flags=cv2.INTER_LINEAR)
+        warped = cv2.warpPerspective(combined_binary, self.M, self.img_size, flags=cv2.INTER_LINEAR)
+
+        if self.show_images:
+            # Plotting thresholded images
+            f, axes = plt.subplots(2, 3, figsize=(20,10))
+            axes[0,0].set_title('S-Channel')
+            axes[0,0].imshow(s_binary, cmap='gray')
+            axes[0,1].set_title('R- channel')
+            axes[0,1].imshow(r_binary, cmap='gray')
+            axes[0,2].set_title('Gradient Direction')
+            axes[0,2].imshow(graddir_binary, cmap='gray')
+            axes[1,0].set_title('Gradient magnitude')
+            axes[1,0].imshow(gradmag_binary, cmap='gray')
+            axes[1,1].set_title('Combined ')
+            axes[1,1].imshow(combined_binary, cmap='gray')
+            axes[1,2].set_title('Original')
+            axes[1,2].imshow(corrected_image)
+            plt.show()
+
+            # warped image
+            plt.imshow(warped, cmap='gray')
+            plt.show()
 
     # find lane 
     # params: processed image
@@ -98,28 +121,43 @@ class lane_finding():
 
     def transform_perspective(self, image_path):
 
-        image = cv2.imread(image_path)
-        
-        src = np.float32([[1040, 680],[255, 680],[628, 431],[650, 431]])
-        dst = np.float32([[1040, 680],[255, 680],[255, 430],[1040, 430]])
-        # # Compute the inverse perspective transform:
-        self.Minv = cv2.getPerspectiveTransform(dst, src)
-        height, width, channel = image.shape
-        self.img_size = (height,width)
-        top_down = cv2.warpPerspective(image, self.Minv, self.img_size, flags=cv2.INTER_LINEAR)
+        print ('Transforming perspective to top down..')
 
-        if self.show_images:
+        image_original = mpimg.imread(image_path)
+        image = cv2.undistort(image_original, self.mtx, self.dist, None, self.mtx)
+
+        height, width, channel = image.shape
+        self.img_size = (width, height)
+
+        # Source points
+        src = np.float32([[690,450],
+                            [1110,self.img_size[1]],
+                            [175,self.img_size[1]],
+                            [595,450]])
+
+        # destination points to transfer
+        offset = 300 # offset for dst points    
+        dst = np.float32([[self.img_size[0]-offset, 0],
+                          [self.img_size[0]-offset, self.img_size[1]],
+                          [offset, self.img_size[1]],
+                          [offset, 0]])     
+        # # Compute the inverse perspective transform:
+        self.M = cv2.getPerspectiveTransform(src, dst)
+        self.Minv = cv2.getPerspectiveTransform(dst, src)
+
+        top_down = cv2.warpPerspective(image, self.M, self.img_size, flags=cv2.INTER_LINEAR)
+
+        if False and self.show_images:
             f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
             f.tight_layout()
             ax1.imshow(image)
-            # ax1.plt(src,'.')
-            ax1.set_title('Original Image', fontsize=50)
-            ax2.imshow(top_down)
-            # ax2.plt(src,'.')
-            ax2.set_title('Undistorted and Warped Image', fontsize=50)
-            plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-            plt.show()
+            ax1.plot(src[:,0], src[:,1], 'r.-')
+            ax1.set_title('Undistorted Image')
 
+            ax2.imshow(top_down)
+            ax2.plot(dst[:,0], dst[:,1], 'r.-')
+            ax2.set_title('Undistorted and Warped Image')
+            plt.show()
 
 
     # Camera calibration
@@ -132,6 +170,8 @@ class lane_finding():
         image_names = os.listdir(calibration_folder)
         # board inner corner size
         nx,ny = 9,6
+
+        print ('Calibrating camera lens distortion..')
 
         for image_name in image_names:
             if image_name[-4:] == '.jpg': # process images only
@@ -153,7 +193,7 @@ class lane_finding():
         #Camera calibration, given object points, image points, and the shape of the grayscale image:
         r, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imagepoints, gray.shape[::-1], None, None)
 
-        if self.show_images:
+        if False and self.show_images:
             #Drawing detected corners on an image:
             image = cv2.drawChessboardCorners(image, (nx,ny), corners, ret)
             plt.imshow(image)
@@ -180,17 +220,25 @@ class lane_finding():
 
 LF = lane_finding(DEBUG)
 
-# LF.calibrate(CALIBRATION_FOLDER)
+LF.calibrate(CALIBRATION_FOLDER)
 LF.transform_perspective(TEST_FOLDER+'/'+'straight_lines1.jpg')
 
 if DEBUG:
-    # LF.process_image()
     print ('Process here..')
+    image_names = os.listdir(TEST_FOLDER)
+    for image_name in image_names:
+        if image_name[-4:] == '.jpg': # process images only
+            image_path = TEST_FOLDER + '/' + image_name
+            image = cv2.imread(image_path)
+            LF.process_image(image)
+            break
+
 else:
-    white_output = 'test_videos_output/solidWhiteRight.mp4'
-    clip = VideoFileClip("test_videos/solidWhiteRight.mp4")
-    white_clip = clip1.fl_image(process_image)
-    white_clip.write_videofile(white_output, audio=False)
+    print('Live video..')
+    # white_output = 'test_videos_output/solidWhiteRight.mp4'
+    # clip = VideoFileClip("test_videos/solidWhiteRight.mp4")
+    # white_clip = clip1.fl_image(process_image)
+    # white_clip.write_videofile(white_output, audio=False)
 
 
 
