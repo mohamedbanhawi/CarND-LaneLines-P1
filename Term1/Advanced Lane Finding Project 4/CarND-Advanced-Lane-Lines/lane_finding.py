@@ -2,43 +2,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from PIL import Image
 import cv2
 import os
 import time
 
+
 # constants
 # enables plotting and 
 DEBUG = True
+TRACKING = False
 CALIBRATION_FOLDER = 'camera_cal'
 TEST_FOLDER = 'test_images'
 
 
 # lane finding class for correcting and processing images
 class lane_finding():
-    def __init__(self, show_images = False):
+    def __init__(self, show_images = False, tracking = False):
         # display images 
-        self.show_images = show_images
-        # image size
-        self.im_size = None
-        # camera calibration parameters
-        self.dist = None
-        self.mtx = None
-        self.rvecs = None # rotation matrix
-        self.tvecs = None # translation matrix
-        
-        # image perspective transform
-        self.Minv = None
-        self.M    = None
-
+        self.show_images = False
         # tracking state
-        self.tracking_init = False  #  
-        self.fit_error     = np.inf # polynomial fit
+        self.enable_tracking = tracking
+        self.tracking_left = False
+        self.tracking_right = False
+        # Define conversions in x and y from pixels space to meters
+        self.ym_per_pix = 30/720 # meters per pixel in y dimension
+        self.xm_per_pix = 3.7/700 # meters per pixel in x dimension  
         
     def process_image(self, image):
         
         ################## Lens Distortion Correction ##################
         corrected_image = cv2.undistort(image, self.mtx, self.dist, None, self.mtx)
-
+        image_unmodified = np.copy(corrected_image)
 
         ################## Gradient Thresholds ##################
         # Grayscale image
@@ -93,7 +88,7 @@ class lane_finding():
         # Warp an image using the perspective transform, M:
         warped = cv2.warpPerspective(combined_binary, self.M, self.img_size, flags=cv2.INTER_LINEAR)
 
-        if False and self.show_images:
+        if self.show_images:
             # Plotting thresholded images
             f, axes = plt.subplots(2, 3, figsize=(20,10))
             axes[0,0].set_title('S-Channel')
@@ -111,11 +106,55 @@ class lane_finding():
             plt.show()
 
         # sliding window lane fit
-        self.lane_search(warped)
+        out_img = self.lane_search(warped)
+
+        rgb_warp = cv2.warpPerspective(image_unmodified, self.M, self.img_size, flags=cv2.INTER_LINEAR)
+
+        # Recast the x and y points into usable format for cv2.fillPoly()
+        if self.tracking_left and self.tracking_right:
+            right = np.array([np.transpose(np.vstack([self.right_fitx, self.fity]))])
+            left = np.array([np.flipud(np.transpose(np.vstack([self.left_fitx, self.fity])))])
+            pts = np.hstack((left, right))
+            cv2.fillPoly(rgb_warp, np.int_([pts]), (0,0,255))
+        if self.tracking_left: 
+            left = np.array([np.transpose(np.vstack([self.left_fitx, self.fity]))])
+            cv2.polylines(rgb_warp, np.int_([left]),0, (255,0,0),20)
+        if self.tracking_left:
+            right = np.array([np.transpose(np.vstack([self.right_fitx, self.fity]))])
+            cv2.polylines(rgb_warp, np.int_([right]),0, (255,0,0),20)
+
+        # Warp the blank back to original image space using inverse perspective matrix (Minv)
+        image_info = cv2.warpPerspective(rgb_warp, self.Minv, self.img_size, flags=cv2.INTER_LINEAR)
+
+        small_img = cv2.resize(out_img, (self.img_size[0]//4, self.img_size[1]//4))
+
+        small_binary = cv2.resize(combined_binary, (self.img_size[0]//4, self.img_size[1]//4))
+        small_gray = np.zeros_like(small_img)
+        small_gray[:,:,0] = small_binary*255
+        small_gray[:,:,1] = small_binary*255
+        small_gray[:,:,2] = small_binary*255
+        x_offset=50
+        y_offset=50
+        corrected_image[y_offset:y_offset+small_img.shape[0], x_offset:x_offset+small_img.shape[1]] = small_img
+        x_offset=self.img_size[0] - 50 - self.img_size[0]//4
+        corrected_image[y_offset:y_offset+small_binary.shape[0], x_offset:x_offset+small_binary.shape[1]] = small_gray
+
+        # Combine the result with the original image
+        result = cv2.addWeighted(corrected_image, 1, image_info, 0.3, 0)
+        cv2.putText(result, self.rad_text, (420,self.img_size[1]//8,),cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255,255,255),2)
+
+
+        if True:#self.show_images:
+            result = result[...,::-1]
+            plt.imshow(result)
+            plt.show()
+
+        return result
 
     # find lane 
     # params: processed image
     def lane_search(self, binary_warped):
+
         # Take a histogram of the bottom half of the image
         histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
         # Create an output image to draw on and  visualize the result
@@ -134,8 +173,14 @@ class lane_finding():
             plt.show()
 
         midpoint = np.int(histogram.shape[0]//2)
-        leftx_base = np.argmax(histogram[:midpoint])
-        rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+        if True: #not (self.tracking_left or self.enable_tracking):
+            leftx_base = np.argmax(histogram[:midpoint])
+        else:
+            leftx_base = self.leftx_current
+        if True: #(self.tracking_left or self.enable_tracking):
+            rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+        else:
+            rightx_base = self.leftx_current
 
         # Choose the number of sliding windows
         nwindows = 9
@@ -184,34 +229,80 @@ class lane_finding():
             if len(good_right_inds) > minpix:        
                 rightx_current = np.int(np.median(nonzerox[good_right_inds]))
 
-        # # Concatenate the arrays of indices
-        # left_lane_inds = np.concatenate(left_lane_inds)
-        # right_lane_inds = np.concatenate(right_lane_inds)
+        # Concatenate the arrays of indices
+        left_lane_inds = np.concatenate(left_lane_inds)
+        right_lane_inds = np.concatenate(right_lane_inds)
 
-        # # Extract left and right line pixel positions
-        # leftx = nonzerox[left_lane_inds]
-        # lefty = nonzeroy[left_lane_inds] 
-        # rightx = nonzerox[right_lane_inds]
-        # righty = nonzeroy[right_lane_inds] 
+        # # Generate x and y values for plotting
+        self.fity = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
 
-        # # Fit a second order polynomial to each
-        # left_fit = np.polyfit(lefty, leftx, 2)
-        # right_fit = np.polyfit(righty, rightx, 2)
+        self.tracking_left = left_lane_inds.size > 0
+        self.tracking_right  = right_lane_inds.size > 0
+
+        radius_of_curvature = 0.0
+        num_of_radii = 0.0
+
+        if self.tracking_left:
+            self.left_lane_found = True
+            self.leftx_current = leftx_current
+            # Extract left and right line pixel positions
+            leftx = nonzerox[left_lane_inds]
+            lefty = nonzeroy[left_lane_inds]
+            # Fit a second order polynomial to each
+            left_fit = np.polyfit(lefty, leftx, 2)
+            self.left_fitx = left_fit[0]*self.fity**2 + left_fit[1]*self.fity + left_fit[2]
+            out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
+            curv_left = np.mean(self.curvature(self.fity*self.ym_per_pix, self.left_fitx*self.xm_per_pix))
+            radius_of_curvature = radius_of_curvature +curv_left
+            num_of_radii = num_of_radii + 1.0
+        else:
+            self.left_fitx = None
+
+
+        if self.tracking_right > 0:
+            self.right_lane_found = True
+            self.rightx_current = rightx_current
+            rightx = nonzerox[right_lane_inds]
+            righty = nonzeroy[right_lane_inds] 
+            right_fit = np.polyfit(righty, rightx, 2)
+            self.right_fitx = right_fit[0]*self.fity**2 + right_fit[1]*self.fity + right_fit[2]
+            out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
+            curv_right = np.mean(self.curvature(self.fity*self.ym_per_pix, self.right_fitx*self.xm_per_pix))
+            radius_of_curvature = radius_of_curvature + curv_right
+            num_of_radii = num_of_radii + 1.0
+        else:
+            self.right_fitx = None 
+
+        if self.tracking_right | self.tracking_left:
+            radius_of_curvature = radius_of_curvature / num_of_radii
+            self.rad_text = "Radius of Curvature = {}(m)".format(round(radius_of_curvature))
+
 
         if self.show_images:
-            # # Generate x and y values for plotting
-            # ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
-            # left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-            # right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
-
-            # out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
-            # out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
             plt.imshow(out_img)
-            # plt.plot(left_fitx, ploty, color='yellow')
-            # plt.plot(right_fitx, ploty, color='yellow')
-            plt.xlim(0, 1280)
-            plt.ylim(720, 0)
+            if self.tracking_left:
+                plt.plot(self.left_fitx, self.fity, color='yellow')
+            if self.tracking_right:
+                plt.plot(self.right_fitx, self.fity, color='yellow')
+            plt.xlim(0, self.img_size[0])
+            plt.ylim(self.img_size[1], 0)
+
+        if self.show_images:
             plt.show()
+
+        return out_img
+
+    def curvature(self, y, x):
+        # generalised piece wise curvature calculation
+        dx  = np.diff(x,1)[1:]
+        ddx = np.diff(x,2)
+        dy  = np.diff(y,1)[1:]
+        ddy = np.diff(y,2)
+        x   = x[2:]
+        y   = y[2:]
+
+        curvature = ((dx*ddy - dy*ddx)/(dx*dx+dy*dy)**1.5)
+        return 1/curvature
 
     def transform_perspective(self, image_path):
 
@@ -312,7 +403,7 @@ class lane_finding():
 
             plt.show()
 
-LF = lane_finding(DEBUG)
+LF = lane_finding(DEBUG, TRACKING)
 
 LF.calibrate(CALIBRATION_FOLDER)
 LF.transform_perspective(TEST_FOLDER+'/'+'straight_lines1.jpg')
@@ -325,8 +416,6 @@ if DEBUG:
             image_path = TEST_FOLDER + '/' + image_name
             image = cv2.imread(image_path)
             LF.process_image(image)
-            break
-
 else:
     print('Live video..')
     # white_output = 'test_videos_output/solidWhiteRight.mp4'
