@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-from PIL import Image
+from moviepy.editor import VideoFileClip
 import cv2
 import os
 import time
@@ -10,8 +10,8 @@ import time
 
 # constants
 # enables plotting and 
-DEBUG = True
-TRACKING = False
+DEBUG = False
+TRACKING = True
 CALIBRATION_FOLDER = 'camera_cal'
 TEST_FOLDER = 'test_images'
 
@@ -144,7 +144,7 @@ class lane_finding():
         cv2.putText(result, self.rad_text, (420,self.img_size[1]//8,),cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255,255,255),2)
 
 
-        if True:#self.show_images:
+        if self.show_images:#self.show_images:
             result = result[...,::-1]
             plt.imshow(result)
             plt.show()
@@ -173,14 +173,17 @@ class lane_finding():
             plt.show()
 
         midpoint = np.int(histogram.shape[0]//2)
-        if True: #not (self.tracking_left or self.enable_tracking):
-            leftx_base = np.argmax(histogram[:midpoint])
+        if self.enable_tracking and self.tracking_right:
+            rightx_base = self.rightx_current
         else:
-            leftx_base = self.leftx_current
-        if True: #(self.tracking_left or self.enable_tracking):
             rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+        if self.enable_tracking and self.tracking_left:
+            leftx_base = self.leftx_current
         else:
-            rightx_base = self.leftx_current
+            leftx_base = np.argmax(histogram[:midpoint])
+
+
+
 
         # Choose the number of sliding windows
         nwindows = 9
@@ -332,7 +335,7 @@ class lane_finding():
 
         top_down = cv2.warpPerspective(image, self.M, self.img_size, flags=cv2.INTER_LINEAR)
 
-        if False and self.show_images:
+        if self.show_images:
             f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
             f.tight_layout()
             ax1.imshow(image)
@@ -378,7 +381,7 @@ class lane_finding():
         #Camera calibration, given object points, image points, and the shape of the grayscale image:
         r, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imagepoints, gray.shape[::-1], None, None)
 
-        if False and self.show_images:
+        if self.show_images:
             #Drawing detected corners on an image:
             image = cv2.drawChessboardCorners(image, (nx,ny), corners, ret)
             plt.imshow(image)
@@ -408,6 +411,10 @@ LF = lane_finding(DEBUG, TRACKING)
 LF.calibrate(CALIBRATION_FOLDER)
 LF.transform_perspective(TEST_FOLDER+'/'+'straight_lines1.jpg')
 
+def process_wrapper(image):
+    return LF.process_image(image)
+
+
 if DEBUG:
     print ('Process here..')
     image_names = os.listdir(TEST_FOLDER)
@@ -418,10 +425,10 @@ if DEBUG:
             LF.process_image(image)
 else:
     print('Live video..')
-    # white_output = 'test_videos_output/solidWhiteRight.mp4'
-    # clip = VideoFileClip("test_videos/solidWhiteRight.mp4")
-    # white_clip = clip1.fl_image(process_image)
-    # white_clip.write_videofile(white_output, audio=False)
+    output = 'output.mp4'
+    clip = VideoFileClip("project_video.mp4")
+    output_clip = clip.fl_image(LF.process_image)
+    output_clip.write_videofile(output, audio=False)
 
 
 
