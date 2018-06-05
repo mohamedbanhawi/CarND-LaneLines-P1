@@ -87,7 +87,7 @@ Up to this stage, we end up with a thresholded and warped image as follows,
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial
 
-I used a histogram of the bottom half of the image to find left and right lanes to find the base of the lane. This is implemented in lines 157-183 in `lane_search()`method of the `lane_finding` class in [lane_finding.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/lane_finding.py).
+I used a histogram of the bottom half of the image to find left and right lanes to find the base of the lane. This is implemented in lines 157-183 in `lane_search()`method of the `lane_finding` class in [lane_finding.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/lane_finding.py). This is only implemented in the first step of the lane finding, we then default to tracking mode where the previous based from the previous frame is used.
 
 ![Peaks](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/output_images/Peaks.png "Peaks")
 
@@ -123,6 +123,21 @@ The radius of curvature and distance from the lane are written using `cv2.putTex
 
 ![Output](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/output_images/Output_image.png "Output")
 
+To calculate the distance from the center:
+
+Assume camera is mounted in the centre of the image (along the x-axis)
+```python
+exp_center_m = self.img_size[0] / 2 * self.xm_per_pix
+```
+The position of the vehicle is between the base of both lanes. Which can be find by using the polyfit cooeficients at the bottom of the image (maximum y-value)
+```python
+actual_center_m = (right_base_x_m + left_base_x_m) /2
+```
+The distance from centre can be calculated by subtracted the camera centre from the lane centre.
+```python
+offset_center_m = actual_center_m - exp_center_m
+```
+
 ---
 
 ### Pipeline (video)
@@ -137,4 +152,7 @@ Here's the link to my video [Video](https://github.com/mohamedbanhawi/Udacity_Se
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+1- Lane fit: Instead of using quadratic fit, a clothoid or Bezier curve is a more approariate fit as they have continious curvatures profiles and they are not sensitive to local changes which might distort the shape of the quadtratic fit.
+2- Tracking mode: We should implement a tracking monitor, if the quality of the thresholding or the curve fit is low we should revert back to the historgram search.
+3- Filtering: The lane fit parameters should be smoother by some averaging or kalman filter tracking. We do not expect sudden change in the lane shape.
+4- Adaptive filtering: Based on the time of data we can potentially modify thresholds.
