@@ -99,17 +99,20 @@ Starting by the base of we divide the base left and right lanes into nine window
 
 A least square quadratic fit was used to generate the lane using the built in `numpy`. The quadtratic fit result is shown below in yellow.
 
-![Lane fit](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/output_images/lane_search.png "quadtratic fit").
+![Lane fit](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/output_images/lane_search.png "quadtratic fit")
 
 These values are in the pixel dimensions, they are transformed to metres using the following multipliers:
 
 ```python
 self.ym_per_pix = 30/720 # meters per pixel in y dimension
-self.xm_per_pix = 3.7/700 # meters per pixel in x dimension```
+self.xm_per_pix = 3.7/700 # meters per pixel in x dimension
+```
 
 I used a generalised curvature calculation to find the curvature for any type of fit in `curvature` method of the `lane_finding` class in [lane_finding.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/lane_finding.py).
 
 The resulting curature radius is taken as the average of both lanes.
+
+
 
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
@@ -117,6 +120,8 @@ The resulting curature radius is taken as the average of both lanes.
 This is an example of the output image, this includes the lane area in blue using `cv2.fillPoly` in blue, the left and right lanes are plotted in red `cv2.polylines`. I added the thresholded and lane search results in the top corners to illusrate the lane search pipeline.
 
 The radius of curvature and distance from the lane are written using `cv2.putText`
+
+![Output](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/output_images/Output_image.png "Output")
 
 ---
 
