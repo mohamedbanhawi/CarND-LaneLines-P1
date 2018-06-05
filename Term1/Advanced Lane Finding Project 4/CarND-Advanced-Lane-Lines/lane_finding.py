@@ -141,7 +141,9 @@ class lane_finding():
         try:
             # Combine the result with the original image
             result = cv2.addWeighted(corrected_image, 1, image_info, 0.3, 0)
-            cv2.putText(result, self.rad_text, (420,self.img_size[1]//8,),cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255,255,255),2)
+            cv2.putText(result, self.rad_text,  (420,self.img_size[1]//8,),cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255,255,255),2)
+            cv2.putText(result, self.dist_text, (420,self.img_size[1]//4,),cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255,255,255),2)
+
             if self.show_images:
                 result = result[...,::-1]
                 plt.imshow(result)
@@ -242,6 +244,9 @@ class lane_finding():
 
         radius_of_curvature = 0.0
         num_of_radii = 0.0
+        offset_center_m = 0.0
+        base_y = self.img_size[1]
+
 
         if self.tracking_left:
             self.left_lane_found = True
@@ -257,6 +262,7 @@ class lane_finding():
             radius_of_curvature = radius_of_curvature +curv_left
             num_of_radii = num_of_radii + 1.0
             self.leftx_base = leftx_base
+            left_base_x_m = (left_fit[0]*base_y**2 + left_fit[1]*base_y + left_fit[2])*self.xm_per_pix
         else:
             self.left_fitx = None
 
@@ -272,12 +278,20 @@ class lane_finding():
             radius_of_curvature = radius_of_curvature + curv_right
             num_of_radii = num_of_radii + 1.0
             self.rightx_base = rightx_base
+            right_base_x_m = (right_fit[0]*base_y**2 + right_fit[1]*base_y + right_fit[2])*self.xm_per_pix
         else:
             self.right_fitx = None 
 
         if self.tracking_right | self.tracking_left:
             radius_of_curvature = radius_of_curvature / num_of_radii
             self.rad_text = "Radius of Curvature = {}(m)".format(round(radius_of_curvature))
+
+        if self.tracking_left and self.tracking_right:
+            exp_center_m = self.img_size[0] / 2 * self.xm_per_pix
+            actual_center_m = (right_base_x_m + left_base_x_m) /2
+            offset_center_m = actual_center_m - exp_center_m
+        self.dist_text = "Distance from center = {0:.3f}(m)".format((offset_center_m))
+
 
         if self.show_images:
             plt.imshow(out_img)
