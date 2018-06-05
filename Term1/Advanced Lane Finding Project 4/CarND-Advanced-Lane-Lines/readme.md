@@ -11,14 +11,14 @@ The goals / steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
+## [Rubric Points](https://review.udacity.com/#!/rubrics/571/view) 
 
 ---
 
 ### Writeup / README
 
 #### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  
-This file.
+This [readme](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/readme.md)
 
 The pipeline for the entire project is [lane_finding.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/lane_finding.py)
 
@@ -39,6 +39,9 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 ### Pipeline (single images)
 
 #### 1. Provide an example of a distortion-corrected image.
+
+This is an example of an undistorted image, the effect is cleary around the corners of the image, notice how the shape of the white car is changed.
+![Undistorted](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/output_images/Undistorted.png "Undistorted")
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
@@ -100,9 +103,9 @@ A least square quadratic fit was used to generate the lane using the built in `n
 
 These values are in the pixel dimensions, they are transformed to metres using the following multipliers:
 
-` python
+```python
 self.ym_per_pix = 30/720 # meters per pixel in y dimension
-self.xm_per_pix = 3.7/700 # meters per pixel in x dimension `
+self.xm_per_pix = 3.7/700 # meters per pixel in x dimension```
 
 I used a generalised curvature calculation to find the curvature for any type of fit in `curvature` method of the `lane_finding` class in [lane_finding.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/lane_finding.py).
 
@@ -111,7 +114,9 @@ The resulting curature radius is taken as the average of both lanes.
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
+This is an example of the output image, this includes the lane area in blue using `cv2.fillPoly` in blue, the left and right lanes are plotted in red `cv2.polylines`. I added the thresholded and lane search results in the top corners to illusrate the lane search pipeline.
 
+The radius of curvature and distance from the lane are written using `cv2.putText`
 
 ---
 
