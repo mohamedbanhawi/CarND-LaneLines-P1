@@ -20,7 +20,7 @@ TEST_FOLDER = 'test_images'
 class lane_finding():
     def __init__(self, show_images = False, tracking = False):
         # display images 
-        self.show_images = False
+        self.show_images = show_images
         # tracking state
         self.enable_tracking = tracking
         self.tracking_left = False
@@ -41,25 +41,16 @@ class lane_finding():
 
         # Gradients
         sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0) # Take the derivative in x
-        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1) # Take the derivative in y
-        # abs_sobelx = np.absolute(sobelx) # Absolute x derivative to accentuate lines away from horizontal
-        # scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
+         # Sobelx - takes the derivate in x, absolute value, then rescale
+        abs_sobelx = np.absolute(sobelx)
+        scaled_sobelx = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
 
-        # Gradient direction
-        min_angle = 40*np.pi/180
-        max_angle = 75*np.pi/180
-        absgraddir = np.arctan2(np.absolute(sobely), np.absolute(sobelx))
-        graddir_binary =  np.zeros_like(absgraddir)
-        graddir_binary[(absgraddir >= min_angle) & (absgraddir <= max_angle)] = 1
-        # gradient magnitude
-        mag_thresh=(50, 180)
-        gradmag = np.sqrt(sobelx**2 + sobely**2)
-        # Rescale to 8 bit
-        scale_factor = np.max(gradmag)/255 
-        gradmag = (gradmag/scale_factor).astype(np.uint8) 
-        # Create a binary image of ones where threshold is met, zeros otherwise
-        gradmag_binary = np.zeros_like(gradmag)
-        gradmag_binary[(gradmag >= mag_thresh[0]) & (gradmag <= mag_thresh[1])] = 1
+        sx_thresh_min = 10
+        sx_thresh_max = 100
+        
+        # Threshold x gradient
+        sxbinary = np.zeros_like(scaled_sobelx)
+        sxbinary[(scaled_sobelx >= sx_thresh_min) & (scaled_sobelx <= sx_thresh_max)] = 1
 
         ################## Color threshold ##################
         # R-channel
@@ -75,14 +66,15 @@ class lane_finding():
         r_binary[(r_channel >= r_thresh_min) & (r_channel <= r_thresh_max)] = 1
 
         # Threshold S- color channel
-        s_thresh_min = 125
-        s_thresh_max = 255
+        s_thresh_min = 150
+        s_thresh_max = 250
         s_binary = np.zeros_like(s_channel)
         s_binary[(s_channel >= s_thresh_min) & (s_channel <= s_thresh_max)] = 1
 
         # Combine the binary thresholds
-        combined_binary = np.zeros_like(graddir_binary)
-        combined_binary[((graddir_binary == 1) & (gradmag_binary ==1)) | ((s_binary == 1) & (r_binary == 1))] = 1
+        combined_binary = np.zeros_like(s_binary)
+        # combined_binary[((graddir_binary == 1) & (gradmag_binary ==1)) | ((s_binary == 1) & (r_binary == 1))] = 1
+        combined_binary[((s_binary == 1) | (r_binary == 1) | (sxbinary == 1) )] = 1
 
         ################## Perspective Warp ##################
         # Warp an image using the perspective transform, M:
@@ -95,10 +87,8 @@ class lane_finding():
             axes[0,0].imshow(s_binary, cmap='gray')
             axes[0,1].set_title('R- channel')
             axes[0,1].imshow(r_binary, cmap='gray')
-            axes[0,2].set_title('Gradient Direction')
-            axes[0,2].imshow(graddir_binary, cmap='gray')
-            axes[1,0].set_title('Gradient magnitude')
-            axes[1,0].imshow(gradmag_binary, cmap='gray')
+            axes[0,2].set_title('X -Gradient Direction')
+            axes[0,2].imshow(sxbinary, cmap='gray')
             axes[1,1].set_title('Combined ')
             axes[1,1].imshow(combined_binary, cmap='gray')
             axes[1,2].set_title('Original')
@@ -139,15 +129,26 @@ class lane_finding():
         x_offset=self.img_size[0] - 50 - self.img_size[0]//4
         corrected_image[y_offset:y_offset+small_binary.shape[0], x_offset:x_offset+small_binary.shape[1]] = small_gray
 
-        # Combine the result with the original image
-        result = cv2.addWeighted(corrected_image, 1, image_info, 0.3, 0)
-        cv2.putText(result, self.rad_text, (420,self.img_size[1]//8,),cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255,255,255),2)
+        if self.show_images:
+            f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
+            f.tight_layout()
+            ax1.imshow(corrected_image)
+            ax1.set_title('Undistorted Image')
 
-
-        if self.show_images:#self.show_images:
-            result = result[...,::-1]
-            plt.imshow(result)
+            ax2.imshow(image_info)
             plt.show()
+
+        try:
+            # Combine the result with the original image
+            result = cv2.addWeighted(corrected_image, 1, image_info, 0.3, 0)
+            cv2.putText(result, self.rad_text, (420,self.img_size[1]//8,),cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255,255,255),2)
+            if self.show_images:
+                result = result[...,::-1]
+                plt.imshow(result)
+                plt.show()
+        except:
+            print('Could not merge images')
+            return corrected_image
 
         return result
 
@@ -174,16 +175,13 @@ class lane_finding():
 
         midpoint = np.int(histogram.shape[0]//2)
         if self.enable_tracking and self.tracking_right:
-            rightx_base = self.rightx_current
+            rightx_base = self.rightx_base
         else:
             rightx_base = np.argmax(histogram[midpoint:]) + midpoint
         if self.enable_tracking and self.tracking_left:
-            leftx_base = self.leftx_current
+            leftx_base = self.leftx_base
         else:
             leftx_base = np.argmax(histogram[:midpoint])
-
-
-
 
         # Choose the number of sliding windows
         nwindows = 9
@@ -193,7 +191,7 @@ class lane_finding():
         nonzero = binary_warped.nonzero()
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
-        # Current positions to be updated for each window
+
         leftx_current = leftx_base
         rightx_current = rightx_base
         # Set the width of the windows +/- margin
@@ -258,11 +256,11 @@ class lane_finding():
             curv_left = np.mean(self.curvature(self.fity*self.ym_per_pix, self.left_fitx*self.xm_per_pix))
             radius_of_curvature = radius_of_curvature +curv_left
             num_of_radii = num_of_radii + 1.0
+            self.leftx_base = leftx_base
         else:
             self.left_fitx = None
 
-
-        if self.tracking_right > 0:
+        if self.tracking_right:
             self.right_lane_found = True
             self.rightx_current = rightx_current
             rightx = nonzerox[right_lane_inds]
@@ -273,13 +271,13 @@ class lane_finding():
             curv_right = np.mean(self.curvature(self.fity*self.ym_per_pix, self.right_fitx*self.xm_per_pix))
             radius_of_curvature = radius_of_curvature + curv_right
             num_of_radii = num_of_radii + 1.0
+            self.rightx_base = rightx_base
         else:
             self.right_fitx = None 
 
         if self.tracking_right | self.tracking_left:
             radius_of_curvature = radius_of_curvature / num_of_radii
             self.rad_text = "Radius of Curvature = {}(m)".format(round(radius_of_curvature))
-
 
         if self.show_images:
             plt.imshow(out_img)
@@ -411,15 +409,12 @@ LF = lane_finding(DEBUG, TRACKING)
 LF.calibrate(CALIBRATION_FOLDER)
 LF.transform_perspective(TEST_FOLDER+'/'+'straight_lines1.jpg')
 
-def process_wrapper(image):
-    return LF.process_image(image)
-
-
 if DEBUG:
     print ('Process here..')
     image_names = os.listdir(TEST_FOLDER)
     for image_name in image_names:
-        if image_name[-4:] == '.jpg': # process images only
+        if image_name[-4:] == '.jpg':# process images only
+            print (image_name)
             image_path = TEST_FOLDER + '/' + image_name
             image = cv2.imread(image_path)
             LF.process_image(image)
