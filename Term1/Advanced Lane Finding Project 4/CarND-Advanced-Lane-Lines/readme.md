@@ -112,9 +112,6 @@ I used a generalised curvature calculation to find the curvature for any type of
 
 The resulting curature radius is taken as the average of both lanes.
 
-
-
-
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
 This is an example of the output image, this includes the lane area in blue using `cv2.fillPoly` in blue, the left and right lanes are plotted in red `cv2.polylines`. I added the thresholded and lane search results in the top corners to illusrate the lane search pipeline.
@@ -125,7 +122,7 @@ The radius of curvature and distance from the lane are written using `cv2.putTex
 
 To calculate the distance from the center:
 
-Assume camera is mounted in the centre of the image (along the x-axis)
+Assume camera is mounted in the centre of the image (along the x-axis), implemented in lines 289-293 in in [lane_finding.py](https://github.com/mohamedbanhawi/Udacity_SelfDrivingCar_Nanodegree/blob/master/Term1/Advanced%20Lane%20Finding%20Project%204/CarND-Advanced-Lane-Lines/lane_finding.py)
 ```python
 exp_center_m = self.img_size[0] / 2 * self.xm_per_pix
 ```
@@ -152,7 +149,12 @@ Here's the link to my video [Video](https://github.com/mohamedbanhawi/Udacity_Se
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-1- Lane fit: Instead of using quadratic fit, a clothoid or Bezier curve is a more approariate fit as they have continious curvatures profiles and they are not sensitive to local changes which might distort the shape of the quadtratic fit.
-2- Tracking mode: We should implement a tracking monitor, if the quality of the thresholding or the curve fit is low we should revert back to the historgram search.
-3- Filtering: The lane fit parameters should be smoother by some averaging or kalman filter tracking. We do not expect sudden change in the lane shape.
-4- Adaptive filtering: Based on the time of data we can potentially modify thresholds.
+*Limitations*
+This current implementation is rather sensitive to lighting conditions. As the contrast with the road and lane color change the gradient of the image did not detect the lane, hence I stopped using the gradient in generating a binary image. A potential approach would be using gradient angle to pickup lanes. However, this also caused the side of the road to be detected on the bridge. Possible solutions could be using a different color space such as LAB as suggested by several papers.
+
+The other limitation is the noisiness of the fit. This is caused by using a quadtratic fit for each frame. A solution would be using a bezier or clothoid curve that is not sensitive to local changes. Additionally it is worth applying a sliding window mean on the fit coefficients to smooth out the results and avoid instatenous changes due to changes in the gradient or lighting conditions.
+
+*Challenge video*
+The main difficulty of the challenge video is the crack in the middle of the lane would be picked up as a lane due to the gradient thresholding. I would attempt to rely on color thresholding as gradient was causing too many false detection events.
+
+
