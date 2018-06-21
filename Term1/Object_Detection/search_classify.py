@@ -16,6 +16,9 @@ from sklearn.cross_validation import train_test_split
 # Define a function to extract features from a single image window
 # This function is very similar to extract_features()
 # just for a single image rather than list of images
+# Define a function to extract features from a single image window
+# This function is very similar to extract_features()
+# just for a single image rather than list of images
 def single_img_features(img, color_space='RGB', spatial_size=(32, 32),
                         hist_bins=32, orient=9, 
                         pix_per_cell=8, cell_per_block=2, hog_channel=0,
@@ -93,6 +96,7 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
             on_windows.append(window)
     #8) Return windows for positive detections
     return on_windows
+    
     
     
 # Read in cars and notcars
