@@ -139,8 +139,6 @@ class Training:
         self.y_train    = y_train
         self.y_test     = y_test
 
-        print('Using:',orient,'orientations',pix_per_cell,
-            'pixels per cell and', cell_per_block,'cells per block')
         print('Feature vector length:', len(X_train[0]))
         
         # Use grid search to find best parameters  
@@ -329,16 +327,16 @@ if Training_Mode:
 else:
     result_file = None
 
-# Load Training Data
-TD = Training(result_file)
-TD.load_images()
-
 if Training_Mode:
+    # Load Training Data
+    TD = Training(result_file)
+    TD.load_images()
     if Show_Image:
         TD.visualise_dataset()
 
     for parameter_set in hyper_parameters: 
         t=time.time()
+        print ("Parameters: %s, at %s" %(parameter_set, datetime.now())) 
 
         # extract test parameters
         (colorspace, orient, 
@@ -368,6 +366,10 @@ if Training_Mode:
         # train a classifier with extracted features
         TD.train_classifier(Features = Training_Features)
         TD.output_score(Training_Features)
+    # clear memory 
+    TD = None
+    Training_Features = None
+
 
 else:
     pass
