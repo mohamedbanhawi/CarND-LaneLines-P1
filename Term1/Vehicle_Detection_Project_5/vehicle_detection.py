@@ -626,8 +626,8 @@ class Features:
 
 
 Training_Mode = False # loop through all possible parameters
-SHOW_IMAGE = True
-LOAD_MODEL = True
+SHOW_IMAGE = False # show images for debugging and write up
+LOAD_MODEL = True # load trained model 
 
 if Training_Mode:
     """Parameters to test """
@@ -711,8 +711,8 @@ else:
 
     TD = Training(result_file)
     TD.load_images()
-    # if SHOW_IMAGE:
-    #     TD.visualise_dataset()
+    if SHOW_IMAGE:
+        TD.visualise_dataset()
     t=time.time()
     Object_Detection = Features(
                                 cspace=colorspace, 
@@ -733,29 +733,29 @@ else:
     print(round(Object_Detection.extract_time, 2), 'Seconds to extract features...')
         
     # Visualize HOG on example images
-    # if SHOW_IMAGE:
-    #     Object_Detection.feature_visualiser(TD.Training_Cars)
+    if SHOW_IMAGE:
+        Object_Detection.feature_visualiser(TD.Training_Cars)
     # train a classifier with extracted features
     # not need to use grid search
-    # if SHOW_IMAGE:
-    #     TD.visualise_dataset()
+    if SHOW_IMAGE:
+        TD.visualise_dataset()
     TD.fit_classifier(Features = Object_Detection, load = LOAD_MODEL) 
     Object_Detection.classifier = TD.classifier
     
     # use test image    
     if SHOW_IMAGE:
         files = os.listdir('test_images')
-        print (files)
         for file in files:
-            if file == 'test4.jpg':
-                print (file)
+            if file[-4:] == '.jpg':
                 img = mpimg.imread('test_images/'+file)
                 # draw = Object_Detection.object_detection(img, draw=True)
                 draw = Object_Detection.process_frame(img)
                 plt.imsave("boxes"+file[-5]+".png", draw)
     else:
-        # load movie
-        pass
+        write = 'project_video_out.mp4'
+        input_file = VideoFileClip('project_video.mp4')
+        output_file = input_file.fl_image(Object_Detection.process_frame)
+        output_file.write_videofile(write, audio=False)
 
 
 
