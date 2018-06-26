@@ -527,6 +527,14 @@ class Features:
         return bounding_boxes
 
     def process_frame(self, img):
+
+        # far small
+        self.ystart = 400
+        self.ystop = 464
+        self.scale = 0.8
+        bounding_boxes = []
+        bounding_boxes.append(self.object_detection(img))
+
         # far small
         self.ystart = 400
         self.ystop = 464
@@ -700,7 +708,7 @@ else:
     """Final Parameters"""
     colorspace = "YUV"
     orient = 12
-    pix_per_cell = 16
+    pix_per_cell = 8
     cell_per_block = 2
     hog_channel = "ALL"
     spatial_feat = False
