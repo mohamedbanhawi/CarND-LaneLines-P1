@@ -187,13 +187,11 @@ Here's a [link to my video result](./project_video_output.mp4)
 
 I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
-
 ### Here is an example image and its corresponding heatmaps:
 ![test results](./output_images/heatmap.jpg)
 ![test results](./output_images/image_heatmap.png)
 
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
+### Here the resulting bounding boxes are drawn onto a test image:
 ![test results](./output_images/boxes6.png)
 ---
 
@@ -201,5 +199,13 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+* The initial problem I faced in the project was the fact that the test images and video were in a different format that the training dataset, so I had to divide the .jpg images by 255 to classify them correctly.
+
+* Identifying the parameters: (i.e features) would be useful for the classifier. This really higlighted the advantage of Deep Learning where I did not have to worry about features would be of interest to the network. I over came this problem by using a grid search for the classifier parameters and trying all possible combination of the feature vectors. Regardless, trial and error was still required to find the feature vector that performed well. Hence, deep learning seems more feasible for these sorts of tasks.
+
+* Performance, my classifier is not running in real time. This could be a combination of my hardwawre limitations & using Python (c++ would be ideal in this case). I implemented some simple timing functions to identify the bottlenecksh in the code. Perhaps, writing python wrappers for C++ HOG features and SVC predictor would improve the performance. Additionally, I am extracting the hog features for each window for each step which is exhaustive. The preferred approach would be to get the hog features for the entire image and slide windows on that extracted features.
+
+* Tracking: At this stage there doesn't seem to be any tracking of objects, which causes the bounding boxes to be rather jittery. I considered implementing a recusive bayes filter that uses the heatmap as an input over the entire image space. Starting with an uniform a priori distrubution of probabilities of detectiing a vehicle. The filter can be updated with an new heat map (each pixel value is a probability of classifying a car). The update step of the filter would use bayes rule to update the probabilities, followed by a motion model based on the perspective of the camera (based on the mounting) and the speed of the vehicle.
+
+
 
