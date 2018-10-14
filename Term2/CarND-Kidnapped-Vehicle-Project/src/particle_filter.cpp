@@ -28,7 +28,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     // NOTE: Consult particle_filter.h for more information about this method (and others in this file).
     default_random_engine gen;
 
-    num_particles = 200;
+    num_particles = 100;
 
     // a normal (Gaussian) distribution
     normal_distribution<double> dist_x(x, std[0]);
@@ -39,15 +39,15 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         // Sample from these normal distrubtions 
         Particle P;
         P.id = 0;
-        P.x = x + dist_x(gen);
-        P.y = y + dist_y(gen);
-        P.theta = theta + dist_theta(gen);     
+        P.x = dist_x(gen);
+        P.y = dist_y(gen);
+        P.theta = dist_theta(gen);     
         particles.push_back(P);
         weights.push_back(1.0);
     }
     is_initialized = true;
-    cout << "Initialised" << endl;
-    cout << "# of particles: " << particles.size() << endl;
+    //cout << "Initialised" << endl;
+    //cout << "# of particles: " << particles.size() << endl;
 
 }
 
@@ -97,7 +97,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
                 min_error = error;
             }
         }
-        cout << "min_error = " << min_error << endl; 
+        //cout << "min_error = " << min_error << endl; 
     }
 }
 
@@ -172,12 +172,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                 double dx = (p_observations.at(i).x - predictions.at(id_o).x);
                 double dy = (p_observations.at(i).y - predictions.at(id_o).y);
                 double exponent= (dx*dx)/(2 * var_x) + (dy*dy)/(2 * var_y);
-                // cout << "dx " << dx << endl;
-                // cout << "dy " << dy << endl;
-                // cout << "varx " << var_x << endl;
-                // cout << "vary " << var_y << endl;
-                // cout << "exponent " << exponent << endl;
-                // cout << "gauss_norm " << gauss_norm << endl;
+                // //cout << "dx " << dx << endl;
+                // //cout << "dy " << dy << endl;
+                // //cout << "varx " << var_x << endl;
+                // //cout << "vary " << var_y << endl;
+                // //cout << "exponent " << exponent << endl;
+                // //cout << "gauss_norm " << gauss_norm << endl;
                 particles.at(p).weight *= gauss_norm * exp(-exponent);
             } // loop through associated observations
             weights.at(p) = particles.at(p).weight;
@@ -189,12 +189,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
           particles.at(p).weight = 0.0;
           weights.at(p) = 0.0;  
         }
-        cout << "p[" << p<< "], weight =" << weights.at(p) << endl;
+        //cout << "p[" << p<< "], weight =" << weights.at(p) << endl;
     } // loop through particles
 }
 
 void ParticleFilter::resample() {
-    cout << "resample" << endl;
+    //cout << "resample" << endl;
 
     // TODO: Resample particles with replacement with probability proportional to their weight. 
     // NOTE: You may find std::discrete_distribution helpful here.
