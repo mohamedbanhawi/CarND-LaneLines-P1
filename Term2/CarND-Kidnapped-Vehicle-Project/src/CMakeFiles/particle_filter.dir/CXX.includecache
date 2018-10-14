@@ -1,0 +1,50 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/mohamedbanhawi/Library/Mobile Documents/com~apple~CloudDocs/My Documents/University/Udacity/Repository.nosync/Udacity_SelfDrivingCar_Nanodegree/Term2/CarND-Kidnapped-Vehicle-Project/src/helper_functions.h
+sstream
+-
+fstream
+-
+math.h
+-
+vector
+-
+map.h
+/Users/mohamedbanhawi/Library/Mobile Documents/com~apple~CloudDocs/My Documents/University/Udacity/Repository.nosync/Udacity_SelfDrivingCar_Nanodegree/Term2/CarND-Kidnapped-Vehicle-Project/src/map.h
+
+/Users/mohamedbanhawi/Library/Mobile Documents/com~apple~CloudDocs/My Documents/University/Udacity/Repository.nosync/Udacity_SelfDrivingCar_Nanodegree/Term2/CarND-Kidnapped-Vehicle-Project/src/map.h
+
+/Users/mohamedbanhawi/Library/Mobile Documents/com~apple~CloudDocs/My Documents/University/Udacity/Repository.nosync/Udacity_SelfDrivingCar_Nanodegree/Term2/CarND-Kidnapped-Vehicle-Project/src/particle_filter.cpp
+random
+-
+algorithm
+-
+iostream
+-
+numeric
+-
+math.h
+-
+iostream
+-
+sstream
+-
+string
+-
+iterator
+-
+limits
+-
+particle_filter.h
+/Users/mohamedbanhawi/Library/Mobile Documents/com~apple~CloudDocs/My Documents/University/Udacity/Repository.nosync/Udacity_SelfDrivingCar_Nanodegree/Term2/CarND-Kidnapped-Vehicle-Project/src/particle_filter.h
+
+/Users/mohamedbanhawi/Library/Mobile Documents/com~apple~CloudDocs/My Documents/University/Udacity/Repository.nosync/Udacity_SelfDrivingCar_Nanodegree/Term2/CarND-Kidnapped-Vehicle-Project/src/particle_filter.h
+helper_functions.h
+/Users/mohamedbanhawi/Library/Mobile Documents/com~apple~CloudDocs/My Documents/University/Udacity/Repository.nosync/Udacity_SelfDrivingCar_Nanodegree/Term2/CarND-Kidnapped-Vehicle-Project/src/helper_functions.h
+
