@@ -103,6 +103,16 @@ int main() {
           auto coeffs = polyfit(ptsx_vehicleframe, ptsy_vehicleframe, 3);
           double cte = polyeval(coeffs, 0);  // px = 0, py = 0
           double epsi = -atan(coeffs[1]);  // p
+          cout << ptsx_vehicleframe << endl;
+          cout << "****" << endl;
+          cout << ptsy_vehicleframe << endl;
+          cout << "****" << endl;
+          cout << cte << endl;
+          cout << "****" << endl;
+          cout << epsi << endl;
+          cout << "****" << endl;
+
+
           /*
           * Calculate steering angle and throttle using MPC.
           *
