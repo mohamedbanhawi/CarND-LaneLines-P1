@@ -43,29 +43,28 @@ class FG_eval {
     fg[0] = 0;
     // cost function
 
-    const int cte_cost_weight = 2000;
-    const int epsi_cost_weight = 2000;
-    const int v_cost_weight = 1;
-    const int delta_cost_weight = 10;
-    const int a_cost_weight = 10;
-    const int delta_change_cost_weight = 100;
-    const int a_change_cost_weight = 10;
     
-    for (int t = 0; t < N; t++) {
-      fg[0] += cte_cost_weight * CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += epsi_cost_weight * CppAD::pow(vars[epsi_start + t], 2);
-      fg[0] += v_cost_weight * CppAD::pow(vars[v_start + t] - 50, 2);
+    for (size_t t = 0; t < N; t++) {
+      fg[0] += 5000 * CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += 5000 * CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += 1 * CppAD::pow(vars[v_start + t] - 40, 2);
+
     }
     
-    for (int t = 0; t < N-1; t++) {
-      fg[0] += delta_cost_weight * CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += a_cost_weight * CppAD::pow(vars[a_start + t], 2);
+    for (size_t t = 0; t < N-1; t++) {
+      fg[0] += 10 * CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += 10 * CppAD::pow(vars[a_start + t], 2);
+      // lateral acceleration
+      // fg[0] += 5 * CppAD::pow(vars[v_start + t] * vars[v_start + t] * vars[delta_start + t]/Lf, 2);
+
     }
     
-    for (int t = 0; t < N-2; t++) {
-      fg[0] += delta_change_cost_weight * pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += a_change_cost_weight * pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+    for (size_t t = 0; t < N-2; t++) {
+      fg[0] += 100 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += 10 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
+
+
     
     // Setup Model Constraints
     
@@ -80,7 +79,7 @@ class FG_eval {
     fg[1 + epsi_start] = vars[epsi_start];
     
     // The rest of the constraints
-    for (int t = 1; t < N; t++) {
+    for (size_t t = 1; t < N; t++) {
       // State at time t + 1
       AD<double> x1 = vars[x_start + t];
       AD<double> y1 = vars[y_start + t];
@@ -132,7 +131,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   // Initial value of the independent variables.
   Dvector vars(n_vars);
-  for (int i = 0; i < n_vars; i++) {
+  for (size_t i = 0; i < n_vars; i++) {
     vars[i] = 0;
   }
 
@@ -146,18 +145,18 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
 
-  for (int i = 0; i < delta_start; i++) {
+  for (size_t i = 0; i < delta_start; i++) {
     vars_lowerbound[i] = -1.0e19;
     vars_upperbound[i] = 1.0e19;
   }
   
   // Set lower and upper limits for steering
-  for (int i = delta_start; i < a_start - 1; i++) {
+  for (size_t i = delta_start; i < a_start - 1; i++) {
     vars_lowerbound[i] = -M_PI*25/180.0;
     vars_upperbound[i] = M_PI*25/180.0;
   }
   // Set lower and upper limits for throttle
-  for (int i = a_start; i < n_vars; i++) {
+  for (size_t i = a_start; i < n_vars; i++) {
     vars_lowerbound[i] = -1.0f;
     vars_upperbound[i] = 1.0f;
   }
@@ -165,7 +164,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Lower and upper limits for the constraints
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (int i = 0; i < n_constraints; i++) {
+  for (size_t i = 0; i < n_constraints; i++) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
@@ -225,7 +224,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   std::cout << "solution.x[delta_start]:" << solution.x[delta_start] << std::endl;
   std::cout << "solution.x[a_start]:" << solution.x[a_start] << std::endl;
 
-  for (int i = 0; i < N-1; i++) {
+  for (size_t i = 0; i < N-1; i++) {
     sol.push_back(solution.x[x_start + i + 1]);
     sol.push_back(solution.x[y_start + i + 1]);
   }

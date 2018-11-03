@@ -91,6 +91,8 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          double delta = j[1]["steering_angle"];
+          double a = j[1]["throttle"];
 
           // Global cartesian to vehicle frame
           size_t n_wp = ptsx.size();
@@ -119,19 +121,32 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
+
           double steer_value;
           double throttle_value;
 
-          Eigen::VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
-          auto vars = mpc.Solve(state, coeffs);
-          steer_value = vars[0];
+          Eigen::VectorXd state_predict(6);
+
+          const double dt = 0.1;
+          const double Lf = 2.67;// Predict state after latency
+          // x, y and psi ar all zero after transformation above
+          state_predict(0) = 0.0 + v * dt;
+          state_predict(1) = 0.0; 
+          state_predict(2) = 0.0 + v * -delta / Lf * dt;
+          state_predict(3) = v + a * dt;
+          state_predict(4) = cte + v * sin(epsi) * dt;
+          state_predict(5) = epsi + v * -delta / Lf * dt;
+
+
+ 
+          auto vars = mpc.Solve(state_predict, coeffs);
+          steer_value = vars[0]/ (deg2rad(25)*Lf);
           throttle_value = vars[1];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value / (deg2rad(25));
+          msgJson["steering_angle"] = steer_value ;
           msgJson["throttle"] = throttle_value;
 
           //Display the MPC predicted trajectory 
@@ -142,7 +157,6 @@ int main() {
               mpc_x_vals.push_back(vars[i]);
               mpc_y_vals.push_back(vars[i+1]);
           }
-
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
