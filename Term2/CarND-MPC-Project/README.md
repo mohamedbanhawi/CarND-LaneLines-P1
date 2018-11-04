@@ -5,10 +5,11 @@ Self-Driving Car Engineer Nanodegree Program
 ## Introduction
 This goal of this project is for navigate a track autonomously given a series of a waypoints on a track on the [udacity car simulator](https://github.com/udacity/self-driving-car-sim). A model predictive controller (MPC) is implemented using [Ipopt](https://projects.coin-or.org/Ipopt) and [CppAD](https://coin-or.github.io/CppAD/doc/cppad.htm) libraries.
 
-![](images/mpc_loop.png)
 ## Implementation
 ### Overview
 The inputs to the MPC are a series of waypoints, which are fitted with a 3rd degree polynomial and the current state. The optimiser then outputs an optimal control set (steering & accelerator) given a model, a set of constraints and a cost function. 
+
+![](images/mpc_loop.png)
 
 ### Model
 A kinematic bicycle model is used in this implementation which assumes a fixed speed and heading. The model consists of the state: x,y, psi (heading), v (speed), and errors: cross track error (cte), heading error. The state transition equations used the actuators (controls): delta (steering angle) and throttle (a).
@@ -74,12 +75,13 @@ Cost function | Weight
 Cross track error (CTE) | 100
 Heading error (EPSI) | 100
 Desired speed error (V - Vref) | 10
- --- | --- 
 Steering cost | 1000
 Throttle cost | 1000
 Change in steering cost | 5000
 Change in throttle cost | 10
 
+## Performance Video
+[![Performance Video](images/video.png)](https://www.youtube.com/watch?v=pFjRIFXmjkc)
 
 ## Dependencies
 
