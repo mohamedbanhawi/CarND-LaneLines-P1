@@ -2,6 +2,84 @@
 Self-Driving Car Engineer Nanodegree Program
 
 ---
+## Introduction
+This goal of this project is for navigate a track autonomously given a series of a waypoints on a track on the [udacity car simulator](https://github.com/udacity/self-driving-car-sim). A model predictive controller (MPC) is implemented using [Ipopt](https://projects.coin-or.org/Ipopt) and [CppAD](https://coin-or.github.io/CppAD/doc/cppad.htm) libraries.
+
+![](images/mpc_loop.png)
+## Implementation
+### Overview
+The inputs to the MPC are a series of waypoints, which are fitted with a 3rd degree polynomial and the current state. The optimiser then outputs an optimal control set (steering & accelerator) given a model, a set of constraints and a cost function. 
+
+### Model
+A kinematic bicycle model is used in this implementation which assumes a fixed speed and heading. The model consists of the state: x,y, psi (heading), v (speed), and errors: cross track error (cte), heading error. The state transition equations used the actuators (controls): delta (steering angle) and throttle (a).
+
+![](images/model.png)
+
+The model equations are implemented as constraints with both upper and lower limits set to zero.
+  
+Constraints were set on the actuation, steering was limited to [-25,25] degrees and throttle was limited to [-1,1] mpsps.
+
+### Polynomial Fitting and MPC Preprocessing
+To simplify the processing of waypoints they are first transformed into the vehicle frame such that the current state is always at the origin (x = 0, y = 0, psi = 0).
+
+![](https://wikimedia.org/api/rest_v1/media/math/render/svg/04df6c10a7dccb95d6b6809825829f9187033a29)
+
+```c++
+            ptsx_vehicleframe(i) = (ptsx[i] - px) * cos(- psi) - (ptsy[i] - py) * sin(- psi);
+            ptsy_vehicleframe(i) = (ptsx[i] - px) * sin(- psi) + (ptsy[i] - py) * cos(- psi);
+```
+### Model Predictive Control with Latency
+The transformed state is now [0,0,0,v,cte,epsi] at time (t), however there's a delay of 100ms in the simulator. As such the controller's current state would not have been valid. To account for this delay the state after delay can be predicted using the state transition equations by using a dt = 0.1 sec. 
+
+```c++
+          state_predict(0) = 0.0 + v * dt;
+          state_predict(1) = 0.0; 
+          state_predict(2) = 0.0 + v * -delta / Lf * dt;
+          state_predict(3) = v + a * dt;
+          state_predict(4) = cte + v * sin(epsi) * dt;
+          state_predict(5) = epsi + v * -delta / Lf * dt;
+```
+### Parameters
+1- Timestep Length and Elapsed Duration (N & dt)
+
+
+ N        | dt           | Comment  
+ --- | --- | ---
+ 10     | 0.1 | Used value subjectivley improved tracking performance and stability 
+ 30      | 0.1      |   Slowed down the MPC without any tracking performance enhacements  
+ 10 | 0.2     |    Resulted in delay in the MPC and caused unpredictable tracking behavior  
+
+2- Cost Function
+Cost function and weights were the most critical part of the MPC implementation which affected the perfomance of the controller significantly.
+
+The cost functions were used to follow the path closely (errors) and make the ride smooth (actuation cost)
+Errors:
+- Cross track error (CTE)
+- Heading error (EPSI)
+- Desired speed error (V - Vref)
+Actuation cost:
+- Steering cost
+- Throttle cost
+- Change in steering cost
+- Change in throttle cost
+
+Initially all cost functions were used with equal weights which resulted in instable behavior. The next step was adding weights to guide the MPC tracker. Based on intuition, change in steering cost and steering cost were assigned the largest weights to stablise the vehicle on the road. This resulted in reasonable tracking behavior however the vehicle never converged to the reference path as shown below.
+
+![](images/Large_Error_Low_Delta.png)
+
+The final weights used are shown below:
+
+Cost function | Weight
+ --- | --- 
+Cross track error (CTE) | 100
+Heading error (EPSI) | 100
+Desired speed error (V - Vref) | 10
+ --- | --- 
+Steering cost | 1000
+Throttle cost | 1000
+Change in steering cost | 5000
+Change in throttle cost | 10
+
 
 ## Dependencies
 
