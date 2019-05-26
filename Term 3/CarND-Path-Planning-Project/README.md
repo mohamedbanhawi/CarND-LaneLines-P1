@@ -18,10 +18,17 @@ The aim of this project is to safely navigate a highway. The vehicle is driving 
  - Complete one loop.
  - Do not exceed jerk and acceleration limits
 ---
+## Performance
+Desired outcomes are achieved, the vehicle is able to drive without any incidents
 
+![](media/sim_screenshot.png)
+
+---
 ## Implementation
 The approach is divided into three main modules
+
 **1. Longitduinal Speed Control:** 
+
 Target velocity is set based on whether the lane ahead is occupied or not using a PID controlled. 
 ```cpp
 ...
