@@ -23,6 +23,8 @@ Desired outcomes are achieved, the vehicle is able to drive without any incident
 
 ![](media/sim_screenshot.png)
 
+[Video of drive!](https://www.youtube.com/watch?v=-_O9b3eb4U4&feature=youtu.be)
+
 ---
 ## Implementation
 The approach is divided into three main modules
