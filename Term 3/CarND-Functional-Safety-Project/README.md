@@ -8,5 +8,6 @@ This project consist on creating the documentation for the functional safety of 
 The documentation consists on the following documents
 
 - [Safety Plan](./01_SafetyPlan_LaneAssistance.pdf)
+- [Hazard Analysis and Risk Assessment](./02_HazardAnalysisAndRiskAssessment.pdf)
 
 
