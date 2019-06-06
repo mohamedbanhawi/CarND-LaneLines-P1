@@ -9,5 +9,6 @@ The documentation consists on the following documents
 
 - [Safety Plan](./01_SafetyPlan_LaneAssistance.pdf)
 - [Hazard Analysis and Risk Assessment](./02_HazardAnalysisAndRiskAssessment.pdf)
+- [Functional Safety Concept](./03_FunctionalSafetyConcept_LaneAssistance.pdf)
 
 
