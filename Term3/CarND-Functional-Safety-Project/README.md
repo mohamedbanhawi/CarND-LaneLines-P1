@@ -11,5 +11,6 @@ The documentation consists on the following documents
 - [Hazard Analysis and Risk Assessment](./02_HazardAnalysisAndRiskAssessment.pdf)
 - [Functional Safety Concept](./03_FunctionalSafetyConcept_LaneAssistance.pdf)
 - [Technical Safety Concept](./04_TechnicalSafetyConcept_LaneAssistance.pdf)
+- [Software Requirements and Architecture](./05_SoftwareRequirementsAndArchitecture_LaneAssistance.pdf)
 
 
